@@ -2,6 +2,26 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CRITICAL: Maintaining This File
+
+**MANDATORY REQUIREMENT**: Whenever you add new functionalities, make architectural changes, or modify significant aspects of this repository, you MUST update this CLAUDE.md file to reflect those changes. This is not optional.
+
+### Your Responsibilities
+- **After implementing new features**: Add or update relevant sections describing the new functionality, its location, and how it integrates with existing code
+- **After architectural changes**: Update the Architecture section to accurately reflect the current structure
+- **After modifying configuration**: Update the Configuration Management section with new options, flags, or behavior
+- **After changing development workflows**: Update the Development Commands or Development Guidelines sections accordingly
+- **When information becomes obsolete**: Remove or rewrite outdated information that no longer accurately describes the codebase
+
+### How to Update
+1. Before completing any substantial task, review this entire file
+2. Identify sections that are now outdated or incomplete due to your changes
+3. Update those sections with accurate, current information
+4. Add new sections if you've introduced entirely new concepts or subsystems
+5. Ensure the information is clear, concise, and helpful for future interactions
+
+**The goal**: This file should always provide an accurate, current snapshot of the project so that you (Claude) can work effectively with the codebase in future sessions. Outdated or incomplete information here directly reduces your effectiveness.
+
 ## Project Overview
 
 `cue` is a CLI-first tool that generates LLM-ready prompts optimized to get the most out of your agentic buddy. The project is written in Go and uses the Cobra framework for CLI commands and Viper for configuration management.
@@ -53,7 +73,7 @@ go mod tidy
 ### CLI Framework (Cobra)
 The CLI is built using the Cobra framework:
 - Root command is defined in `cmd/root.go` with the `rootCommand` variable
-- Command execution starts in the `Execute()` function (cmd/root.go:27)
+- Command execution starts in the `Execute()` function in `cmd/root.go`
 - New subcommands should be added to the `cmd/` package and registered in the `init()` function
 
 ### Configuration Management (Viper)
@@ -66,11 +86,11 @@ Configuration is managed through Viper with the following hierarchy:
 3. **Command-line flags**: Bound to Viper after parsing
 
 #### Configuration Initialization
-The `initializeConfig()` function (cmd/root.go:38) is called in the `PersistentPreRunE` hook of the root command:
-- Sets environment variable prefix to "CUE"
-- Replaces `.` and `-`with `*` in environment variable names
+Configuration is initialized in the `PersistentPreRunE` hook of the root command in `cmd/root.go`:
+- Sets environment variable prefix to "CUE" with `viper.SetEnvPrefix()`
+- Enables automatic environment variable reading with `viper.AutomaticEnv()`
 - Loads config from YAML file if found (non-fatal if missing)
-- Binds command-line flags to Viper
+- Binds command-line flags to Viper configuration
 
 #### Adding New Configuration
 To add new configuration options:
