@@ -10,9 +10,8 @@ import (
 
 var rootConfig string
 var rootCommand = &cobra.Command{
-	Use: "cue",
-	Short: "CLI-first tool that generates LLM-ready prompts " +
-		"optimized to get most out of your agentic buddy.",
+	Use:   "cue",
+	Short: "Generate LLM-ready, effective prompts directly from your CLI.",
 
 	PersistentPreRunE: func(command *cobra.Command, arguments []string) error {
 		viper.SetEnvPrefix("CUE")

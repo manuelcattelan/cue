@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`cue` is a CLI-first tool that generates LLM-ready prompts optimized to get the most out of your agentic buddy. The project is written in Go and uses the Cobra framework for CLI commands and Viper for configuration management.
+`cue` is a tool that allows to generate LLM-ready, effective prompts directly from the CLI.
 
 ## Development Commands
 
