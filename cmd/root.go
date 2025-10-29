@@ -1,12 +1,13 @@
 package cmd
 
 import (
-	"cue/internal/config"
 	"errors"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"cue/internal/config"
 )
 
 var rootConfig string

@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"cue/internal/config"
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"cue/internal/config"
 )
 
 const (
