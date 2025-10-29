@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"cue/internal/config"
 	"errors"
 	"os"
 
@@ -20,14 +21,16 @@ var rootCommand = &cobra.Command{
 		if rootConfig != "" {
 			viper.SetConfigFile(rootConfig)
 		} else {
-			userConfigDirectory, userConfigDirectoryError := os.UserConfigDir()
-			cobra.CheckErr(userConfigDirectoryError)
+			configDirectory, configDirectoryError := config.GetConfigDirectory()
+			if configDirectoryError != nil {
+				return configDirectoryError
+			}
 
 			viper.AddConfigPath(".")
-			viper.AddConfigPath(userConfigDirectory + "/cue")
+			viper.AddConfigPath(configDirectory)
 
-			viper.SetConfigName("config")
-			viper.SetConfigType("yaml")
+			viper.SetConfigName(config.ConfigFileName)
+			viper.SetConfigType(config.ConfigFileType)
 		}
 
 		if readInConfigError := viper.ReadInConfig(); readInConfigError != nil {
