@@ -36,6 +36,7 @@ func GetConfigFilePath() (string, error) {
 	if configFile == "" {
 		return GetDefaultConfigFilePath()
 	}
+
 	return configFile, nil
 }
 

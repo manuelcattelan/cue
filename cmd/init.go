@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"cue/internal/config"
+	"cue/internal/providers"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbletea"
@@ -27,10 +28,10 @@ func (model Model) Init() tea.Cmd {
 
 func initialModel() Model {
 	return Model{
-		providerID:          0,
+		providerID:          1,
 		providerIDSubmitted: false,
 
-		providerModel:          0,
+		providerModel:          1,
 		providerModelSubmitted: false,
 
 		providerAPIKeyTextInput: textinput.New(),
@@ -62,7 +63,7 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch typeMessage.Type {
 		case tea.KeyDown:
-			if model.providerID < 3 {
+			if model.providerID < providers.GetProvidersCount() {
 				model.providerID++
 			}
 		case tea.KeyUp:
@@ -71,9 +72,11 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 			}
 		case tea.KeyEnter:
 			model.providerIDSubmitted = true
+			model.providerModel = 1
 			return model, nil
 		}
 	}
+
 	return model, nil
 }
 
@@ -82,7 +85,7 @@ func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch typeMessage.Type {
 		case tea.KeyDown:
-			if model.providerModel < 3 {
+			if model.providerModel < providers.GetProviderModelsCount(model.providerID) {
 				model.providerModel++
 			}
 		case tea.KeyUp:
@@ -91,9 +94,11 @@ func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 			}
 		case tea.KeyEnter:
 			model.providerModelSubmitted = true
+			model.providerAPIKeyTextInput.Focus()
 			return model, nil
 		}
 	}
+
 	return model, nil
 }
 
@@ -125,15 +130,39 @@ func (model Model) View() string {
 }
 
 func providerIDView(model Model) string {
-	return "provider_id"
+	providerIDView := "Select your provider:\n\n"
+
+	providers := providers.GetProviders()
+	for _, provider := range providers {
+		cursor := "  "
+		if model.providerID == provider.ID {
+			cursor = "> "
+		}
+		providerIDView += cursor + provider.Label + "\n"
+	}
+
+	return providerIDView
 }
 
 func providerModelView(model Model) string {
-	return "provider_model"
+	providerModelView := "Select your provider's model:\n\n"
+
+	provider := providers.GetProvider(model.providerID)
+	if provider != nil {
+		for _, providerModel := range provider.Models {
+			cursor := "  "
+			if model.providerModel == providerModel.ID {
+				cursor = "> "
+			}
+			providerModelView += cursor + providerModel.Label + "\n"
+		}
+	}
+
+	return providerModelView
 }
 
 func providerAPIKeyView(model Model) string {
-	return "provider_api_key"
+	return "Provide your provider's API key:\n\n" + model.providerAPIKeyTextInput.View()
 }
 
 var initCommand = &cobra.Command{
@@ -149,17 +178,22 @@ var initCommand = &cobra.Command{
 
 		programRunModel, programRunOK := programRun.(Model)
 		if programRunOK && programRunModel.providerAPIKeySubmitted {
-			viper.Set("provider_id", programRunModel.providerID)
-			viper.Set("provider_model", programRunModel.providerModel)
-			viper.Set("provider_api_key", programRunModel.providerAPIKey)
+			provider := providers.GetProvider(programRunModel.providerID)
+			providerModel := providers.GetProviderModel(programRunModel.providerID, programRunModel.providerModel)
 
-			_, writeConfigError := config.WriteConfig([]string{
-				"provider_id",
-				"provider_model",
-				"provider_api_key",
-			})
-			if writeConfigError != nil {
-				return writeConfigError
+			if provider != nil && providerModel != nil {
+				viper.Set("provider_id", provider.Value)
+				viper.Set("provider_model", providerModel.Value)
+				viper.Set("provider_api_key", programRunModel.providerAPIKey)
+
+				_, writeConfigError := config.WriteConfig([]string{
+					"provider_id",
+					"provider_model",
+					"provider_api_key",
+				})
+				if writeConfigError != nil {
+					return writeConfigError
+				}
 			}
 		}
 

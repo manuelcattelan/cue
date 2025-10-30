@@ -4,10 +4,10 @@ import (
 	"errors"
 	"os"
 
+	"cue/internal/config"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"cue/internal/config"
 )
 
 var rootConfig string
