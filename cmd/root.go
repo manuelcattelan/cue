@@ -3,11 +3,16 @@ package cmd
 import (
 	"errors"
 	"os"
-
-	"cue/internal/config"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+const (
+	configDirectoryName = "cue"
+	configFileName      = "config"
+	configFileType      = "yaml"
 )
 
 var rootConfig string
@@ -22,16 +27,19 @@ var rootCommand = &cobra.Command{
 		if rootConfig != "" {
 			viper.SetConfigFile(rootConfig)
 		} else {
-			configDirectory, configDirectoryError := config.GetConfigDirectory()
-			if configDirectoryError != nil {
-				return configDirectoryError
+			userConfigDirectory, userConfigDirectoryError := os.UserConfigDir()
+			if userConfigDirectoryError != nil {
+				return userConfigDirectoryError
 			}
 
 			viper.AddConfigPath(".")
-			viper.AddConfigPath(configDirectory)
+			viper.AddConfigPath(filepath.Join(
+				userConfigDirectory,
+				configDirectoryName,
+			))
 
-			viper.SetConfigName(config.ConfigFileName)
-			viper.SetConfigType(config.ConfigFileType)
+			viper.SetConfigName(configFileName)
+			viper.SetConfigType(configFileType)
 		}
 
 		if readInConfigError := viper.ReadInConfig(); readInConfigError != nil {

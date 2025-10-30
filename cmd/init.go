@@ -1,14 +1,62 @@
 package cmd
 
 import (
-	"cue/internal/config"
-	"cue/internal/providers"
+	"os"
+	"path/filepath"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+type provider struct {
+	ID     int
+	Label  string
+	Value  string
+	Models []providerModel
+}
+
+type providerModel struct {
+	ID    int
+	Label string
+	Value string
+}
+
+var providers = []provider{
+	{
+		ID:    1,
+		Label: "Anthropic",
+		Value: "anthropic",
+		Models: []providerModel{
+			{ID: 1, Label: "Claude Opus 4.1", Value: "claude-opus-4-1"},
+			{ID: 2, Label: "Claude Sonnet 4.5", Value: "claude-sonnet-4-5"},
+			{ID: 3, Label: "Claude Haiku 4.5", Value: "claude-haiku-4-5"},
+		},
+	},
+	{
+		ID:    2,
+		Label: "Google",
+		Value: "google",
+		Models: []providerModel{
+			{ID: 1, Label: "Gemini 2.5 Pro", Value: "gemini-2.5-pro"},
+			{ID: 2, Label: "Gemini 2.5 Flash", Value: "gemini-2.5-flash"},
+			{ID: 3, Label: "Gemini 2.5 Flash-Lite", Value: "gemini-2.5-flash-lite"},
+		},
+	},
+	{
+		ID:    3,
+		Label: "OpenAI",
+		Value: "openai",
+		Models: []providerModel{
+			{ID: 1, Label: "GPT-5", Value: "gpt-5"},
+			{ID: 2, Label: "GPT-5 mini", Value: "gpt-5-mini"},
+			{ID: 3, Label: "GPT-5 nano", Value: "gpt-5-nano"},
+			{ID: 4, Label: "GPT-5 pro", Value: "gpt-5-pro"},
+			{ID: 5, Label: "GPT-4.1", Value: "gpt-4-1"},
+		},
+	},
+}
 
 type Model struct {
 	providerID          int
@@ -63,7 +111,7 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch typeMessage.Type {
 		case tea.KeyDown:
-			if model.providerID < providers.GetProvidersCount() {
+			if model.providerID < len(providers) {
 				model.providerID++
 			}
 		case tea.KeyUp:
@@ -85,7 +133,9 @@ func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch typeMessage.Type {
 		case tea.KeyDown:
-			if model.providerModel < providers.GetProviderModelsCount(model.providerID) {
+			if model.providerID > 0 &&
+				model.providerID <= len(providers) &&
+				model.providerModel < len(providers[model.providerID-1].Models) {
 				model.providerModel++
 			}
 		case tea.KeyUp:
@@ -115,7 +165,8 @@ func updateProviderAPIKey(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	model.providerAPIKeyTextInput, command = model.providerAPIKeyTextInput.Update(message)
+	model.providerAPIKeyTextInput, command =
+		model.providerAPIKeyTextInput.Update(message)
 	return model, command
 }
 
@@ -132,7 +183,6 @@ func (model Model) View() string {
 func providerIDView(model Model) string {
 	providerIDView := "Select your provider:\n\n"
 
-	providers := providers.GetProviders()
 	for _, provider := range providers {
 		cursor := "  "
 		if model.providerID == provider.ID {
@@ -147,9 +197,8 @@ func providerIDView(model Model) string {
 func providerModelView(model Model) string {
 	providerModelView := "Select your provider's model:\n\n"
 
-	provider := providers.GetProvider(model.providerID)
-	if provider != nil {
-		for _, providerModel := range provider.Models {
+	if model.providerID > 0 && model.providerID <= len(providers) {
+		for _, providerModel := range providers[model.providerID-1].Models {
 			cursor := "  "
 			if model.providerModel == providerModel.ID {
 				cursor = "> "
@@ -162,7 +211,8 @@ func providerModelView(model Model) string {
 }
 
 func providerAPIKeyView(model Model) string {
-	return "Provide your provider's API key:\n\n" + model.providerAPIKeyTextInput.View()
+	return "Provide your provider's API key:\n\n" +
+		model.providerAPIKeyTextInput.View()
 }
 
 var initCommand = &cobra.Command{
@@ -178,21 +228,48 @@ var initCommand = &cobra.Command{
 
 		programRunModel, programRunOK := programRun.(Model)
 		if programRunOK && programRunModel.providerAPIKeySubmitted {
-			provider := providers.GetProvider(programRunModel.providerID)
-			providerModel := providers.GetProviderModel(programRunModel.providerID, programRunModel.providerModel)
+			if programRunModel.providerID > 0 &&
+				programRunModel.providerID <= len(providers) {
+				provider := providers[programRunModel.providerID-1]
 
-			if provider != nil && providerModel != nil {
-				viper.Set("provider_id", provider.Value)
-				viper.Set("provider_model", providerModel.Value)
-				viper.Set("provider_api_key", programRunModel.providerAPIKey)
+				if programRunModel.providerModel > 0 &&
+					programRunModel.providerModel <= len(provider.Models) {
+					providerModel := provider.Models[programRunModel.providerModel-1]
 
-				_, writeConfigError := config.WriteConfig([]string{
-					"provider_id",
-					"provider_model",
-					"provider_api_key",
-				})
-				if writeConfigError != nil {
-					return writeConfigError
+					viper.Set("provider_id", provider.Value)
+					viper.Set("provider_model", providerModel.Value)
+					viper.Set("provider_api_key", programRunModel.providerAPIKey)
+
+					configFilePath := viper.ConfigFileUsed()
+					if configFilePath == "" {
+						userConfigDirectory, userConfigDirectoryError := os.UserConfigDir()
+						if userConfigDirectoryError != nil {
+							return userConfigDirectoryError
+						}
+						configFilePath = filepath.Join(userConfigDirectory,
+							configDirectoryName,
+							configFileName+"."+configFileType,
+						)
+					}
+
+					mkdirError := os.MkdirAll(filepath.Dir(configFilePath), 0755)
+					if mkdirError != nil {
+						return mkdirError
+					}
+
+					configWriter := viper.New()
+					configWriter.SetConfigFile(configFilePath)
+					configWriter.SetConfigType(configFileType)
+
+					_ = configWriter.ReadInConfig()
+					configWriter.Set("provider_id", viper.Get("provider_id"))
+					configWriter.Set("provider_model", viper.Get("provider_model"))
+					configWriter.Set("provider_api_key", viper.Get("provider_api_key"))
+
+					writeConfigError := configWriter.WriteConfigAs(configFilePath)
+					if writeConfigError != nil {
+						return writeConfigError
+					}
 				}
 			}
 		}
