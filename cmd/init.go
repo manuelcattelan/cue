@@ -227,51 +227,56 @@ var initCommand = &cobra.Command{
 		}
 
 		programRunModel, programRunOK := programRun.(Model)
-		if programRunOK && programRunModel.providerAPIKeySubmitted {
-			if programRunModel.providerID > 0 &&
-				programRunModel.providerID <= len(providers) {
-				provider := providers[programRunModel.providerID-1]
+		if !programRunOK || !programRunModel.providerAPIKeySubmitted {
+			return nil
+		}
 
-				if programRunModel.providerModel > 0 &&
-					programRunModel.providerModel <= len(provider.Models) {
-					providerModel := provider.Models[programRunModel.providerModel-1]
+		if programRunModel.providerID < 0 ||
+			programRunModel.providerID > len(providers) {
+			return nil
+		}
 
-					viper.Set("provider_id", provider.Value)
-					viper.Set("provider_model", providerModel.Value)
-					viper.Set("provider_api_key", programRunModel.providerAPIKey)
+		provider := providers[programRunModel.providerID-1]
+		if programRunModel.providerModel < 0 ||
+			programRunModel.providerModel > len(provider.Models) {
+			return nil
+		}
 
-					configFilePath := viper.ConfigFileUsed()
-					if configFilePath == "" {
-						userConfigDirectory, userConfigDirectoryError := os.UserConfigDir()
-						if userConfigDirectoryError != nil {
-							return userConfigDirectoryError
-						}
-						configFilePath = filepath.Join(userConfigDirectory,
-							configDirectoryName,
-							configFileName+"."+configFileType,
-						)
-					}
+		providerModel := provider.Models[programRunModel.providerModel-1]
 
-					mkdirError := os.MkdirAll(filepath.Dir(configFilePath), 0755)
-					if mkdirError != nil {
-						return mkdirError
-					}
+		viper.Set("provider_id", provider.Value)
+		viper.Set("provider_model", providerModel.Value)
+		viper.Set("provider_api_key", programRunModel.providerAPIKey)
 
-					configWriter := viper.New()
-					configWriter.SetConfigFile(configFilePath)
-					configWriter.SetConfigType(configFileType)
-
-					_ = configWriter.ReadInConfig()
-					configWriter.Set("provider_id", viper.Get("provider_id"))
-					configWriter.Set("provider_model", viper.Get("provider_model"))
-					configWriter.Set("provider_api_key", viper.Get("provider_api_key"))
-
-					writeConfigError := configWriter.WriteConfigAs(configFilePath)
-					if writeConfigError != nil {
-						return writeConfigError
-					}
-				}
+		configFilePath := viper.ConfigFileUsed()
+		if configFilePath == "" {
+			userConfigDirectory, userConfigDirectoryError := os.UserConfigDir()
+			if userConfigDirectoryError != nil {
+				return userConfigDirectoryError
 			}
+			configFilePath = filepath.Join(userConfigDirectory,
+				configDirectoryName,
+				configFileName+"."+configFileType,
+			)
+		}
+
+		mkdirError := os.MkdirAll(filepath.Dir(configFilePath), 0755)
+		if mkdirError != nil {
+			return mkdirError
+		}
+
+		configWriter := viper.New()
+		configWriter.SetConfigFile(configFilePath)
+		configWriter.SetConfigType(configFileType)
+
+		_ = configWriter.ReadInConfig()
+		configWriter.Set("provider_id", viper.Get("provider_id"))
+		configWriter.Set("provider_model", viper.Get("provider_model"))
+		configWriter.Set("provider_api_key", viper.Get("provider_api_key"))
+
+		writeConfigError := configWriter.WriteConfigAs(configFilePath)
+		if writeConfigError != nil {
+			return writeConfigError
 		}
 
 		return nil
