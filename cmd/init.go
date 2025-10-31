@@ -83,7 +83,8 @@ func initialModel() Model {
 	providerAPIKeyTextInput := textinput.New()
 	providerAPIKeyTextInput.Placeholder = "Enter your provider's API key"
 	providerAPIKeyTextInput.EchoMode = textinput.EchoPassword
-	providerAPIKeyTextInput.EchoCharacter = '•'
+	providerAPIKeyTextInput.EchoCharacter = '*'
+	providerAPIKeyTextInput.Width = 32
 
 	return Model{
 		providerID:          1,
@@ -128,11 +129,15 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 	nextProviderID := func() {
 		if model.providerID < len(providers) {
 			model.providerID++
+		} else {
+			model.providerID = 1
 		}
 	}
 	previousProviderID := func() {
 		if model.providerID > 1 {
 			model.providerID--
+		} else {
+			model.providerID = len(providers)
 		}
 	}
 
@@ -162,15 +167,23 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 
 func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 	nextProviderModel := func() {
-		if model.providerID > 0 &&
-			model.providerID <= len(providers) &&
-			model.providerModel < len(providers[model.providerID-1].Models) {
+		if model.providerID <= 0 || model.providerID > len(providers) {
+			return
+		}
+		if model.providerModel < len(providers[model.providerID-1].Models) {
 			model.providerModel++
+		} else {
+			model.providerModel = 1
 		}
 	}
 	previousProviderModel := func() {
+		if model.providerID <= 0 || model.providerID > len(providers) {
+			return
+		}
 		if model.providerModel > 1 {
 			model.providerModel--
+		} else {
+			model.providerModel = len(providers[model.providerID-1].Models)
 		}
 	}
 
