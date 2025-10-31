@@ -125,16 +125,30 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
+	nextProviderID := func() {
+		if model.providerID < len(providers) {
+			model.providerID++
+		}
+	}
+	previousProviderID := func() {
+		if model.providerID > 1 {
+			model.providerID--
+		}
+	}
+
 	switch typeMessage := message.(type) {
 	case tea.KeyMsg:
 		switch typeMessage.Type {
 		case tea.KeyDown:
-			if model.providerID < len(providers) {
-				model.providerID++
-			}
+			nextProviderID()
 		case tea.KeyUp:
-			if model.providerID > 1 {
-				model.providerID--
+			previousProviderID()
+		case tea.KeyRunes:
+			switch typeMessage.String() {
+			case "j":
+				nextProviderID()
+			case "k":
+				previousProviderID()
 			}
 		case tea.KeyEnter:
 			model.providerIDSubmitted = true
@@ -147,18 +161,32 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 }
 
 func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
+	nextProviderModel := func() {
+		if model.providerID > 0 &&
+			model.providerID <= len(providers) &&
+			model.providerModel < len(providers[model.providerID-1].Models) {
+			model.providerModel++
+		}
+	}
+	previousProviderModel := func() {
+		if model.providerModel > 1 {
+			model.providerModel--
+		}
+	}
+
 	switch typeMessage := message.(type) {
 	case tea.KeyMsg:
 		switch typeMessage.Type {
 		case tea.KeyDown:
-			if model.providerID > 0 &&
-				model.providerID <= len(providers) &&
-				model.providerModel < len(providers[model.providerID-1].Models) {
-				model.providerModel++
-			}
+			nextProviderModel()
 		case tea.KeyUp:
-			if model.providerModel > 1 {
-				model.providerModel--
+			previousProviderModel()
+		case tea.KeyRunes:
+			switch typeMessage.String() {
+			case "j":
+				nextProviderModel()
+			case "k":
+				previousProviderModel()
 			}
 		case tea.KeyEnter:
 			model.providerModelSubmitted = true
