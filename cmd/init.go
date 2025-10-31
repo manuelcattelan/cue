@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -58,6 +59,10 @@ var providers = []provider{
 	},
 }
 
+var (
+	selectedOptionStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212"))
+)
+
 type Model struct {
 	providerID          int
 	providerIDSubmitted bool
@@ -75,6 +80,11 @@ func (model Model) Init() tea.Cmd {
 }
 
 func initialModel() Model {
+	providerAPIKeyTextInput := textinput.New()
+	providerAPIKeyTextInput.Placeholder = "Enter your provider's API key"
+	providerAPIKeyTextInput.EchoMode = textinput.EchoPassword
+	providerAPIKeyTextInput.EchoCharacter = '•'
+
 	return Model{
 		providerID:          1,
 		providerIDSubmitted: false,
@@ -82,7 +92,7 @@ func initialModel() Model {
 		providerModel:          1,
 		providerModelSubmitted: false,
 
-		providerAPIKeyTextInput: textinput.New(),
+		providerAPIKeyTextInput: providerAPIKeyTextInput,
 		providerAPIKey:          "",
 		providerAPIKeySubmitted: false,
 	}
@@ -94,6 +104,14 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		switch typeMessage.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return model, tea.Quit
+		case tea.KeyShiftTab:
+			if model.providerModelSubmitted {
+				model.providerModelSubmitted = false
+				model.providerAPIKeyTextInput.Blur()
+			} else if model.providerIDSubmitted {
+				model.providerIDSubmitted = false
+			}
+			return model, nil
 		}
 	}
 
@@ -184,11 +202,13 @@ func providerIDView(model Model) string {
 	providerIDView := "Select your provider:\n\n"
 
 	for _, provider := range providers {
-		cursor := "  "
+		var providerCursor string
 		if model.providerID == provider.ID {
-			cursor = "> "
+			providerCursor = selectedOptionStyle.Render("[x] " + provider.Label)
+		} else {
+			providerCursor = "[ ] " + provider.Label
 		}
-		providerIDView += cursor + provider.Label + "\n"
+		providerIDView += providerCursor + "\n"
 	}
 
 	return providerIDView
@@ -199,11 +219,14 @@ func providerModelView(model Model) string {
 
 	if model.providerID > 0 && model.providerID <= len(providers) {
 		for _, providerModel := range providers[model.providerID-1].Models {
-			cursor := "  "
+			var providerModelCursor string
 			if model.providerModel == providerModel.ID {
-				cursor = "> "
+				providerModelCursor = selectedOptionStyle.Render("[x] " +
+					providerModel.Label)
+			} else {
+				providerModelCursor = "[ ] " + providerModel.Label
 			}
-			providerModelView += cursor + providerModel.Label + "\n"
+			providerModelView += providerModelCursor + "\n"
 		}
 	}
 
@@ -212,7 +235,7 @@ func providerModelView(model Model) string {
 
 func providerAPIKeyView(model Model) string {
 	return "Provide your provider's API key:\n\n" +
-		model.providerAPIKeyTextInput.View()
+		model.providerAPIKeyTextInput.View() + "\n\n"
 }
 
 var initCommand = &cobra.Command{
