@@ -60,7 +60,16 @@ var providers = []provider{
 }
 
 var (
-	selectedOptionStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212"))
+	inputLabelStyle    = lipgloss.NewStyle().Bold(true)
+	inputFocusedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
+	inputSelectedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
+
+	helpStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+	helpHighlightStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+	helpSeparatorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).
+				Render(" • ")
+
+	layoutMainStyle = lipgloss.NewStyle().MarginLeft(2)
 )
 
 type Model struct {
@@ -81,7 +90,10 @@ func (model Model) Init() tea.Cmd {
 
 func initialModel() Model {
 	providerAPIKeyTextInput := textinput.New()
+
 	providerAPIKeyTextInput.Placeholder = "Enter your provider's API key"
+	providerAPIKeyTextInput.PromptStyle = inputFocusedStyle
+	providerAPIKeyTextInput.TextStyle = inputFocusedStyle
 	providerAPIKeyTextInput.EchoMode = textinput.EchoPassword
 	providerAPIKeyTextInput.EchoCharacter = '*'
 	providerAPIKeyTextInput.Width = 32
@@ -113,6 +125,13 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 				model.providerIDSubmitted = false
 			}
 			return model, nil
+		case tea.KeyRunes:
+			switch typeMessage.String() {
+			case "q":
+				if !model.providerModelSubmitted {
+					return model, tea.Quit
+				}
+			}
 		}
 	}
 
@@ -129,15 +148,11 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 	nextProviderID := func() {
 		if model.providerID < len(providers) {
 			model.providerID++
-		} else {
-			model.providerID = 1
 		}
 	}
 	previousProviderID := func() {
 		if model.providerID > 1 {
 			model.providerID--
-		} else {
-			model.providerID = len(providers)
 		}
 	}
 
@@ -148,6 +163,10 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 			nextProviderID()
 		case tea.KeyUp:
 			previousProviderID()
+		case tea.KeyEnter:
+			model.providerIDSubmitted = true
+			model.providerModel = 1
+			return model, nil
 		case tea.KeyRunes:
 			switch typeMessage.String() {
 			case "j":
@@ -155,10 +174,6 @@ func updateProviderID(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 			case "k":
 				previousProviderID()
 			}
-		case tea.KeyEnter:
-			model.providerIDSubmitted = true
-			model.providerModel = 1
-			return model, nil
 		}
 	}
 
@@ -172,8 +187,6 @@ func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 		}
 		if model.providerModel < len(providers[model.providerID-1].Models) {
 			model.providerModel++
-		} else {
-			model.providerModel = 1
 		}
 	}
 	previousProviderModel := func() {
@@ -182,8 +195,6 @@ func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 		}
 		if model.providerModel > 1 {
 			model.providerModel--
-		} else {
-			model.providerModel = len(providers[model.providerID-1].Models)
 		}
 	}
 
@@ -194,6 +205,10 @@ func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 			nextProviderModel()
 		case tea.KeyUp:
 			previousProviderModel()
+		case tea.KeyEnter:
+			model.providerModelSubmitted = true
+			model.providerAPIKeyTextInput.Focus()
+			return model, nil
 		case tea.KeyRunes:
 			switch typeMessage.String() {
 			case "j":
@@ -201,10 +216,6 @@ func updateProviderModel(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 			case "k":
 				previousProviderModel()
 			}
-		case tea.KeyEnter:
-			model.providerModelSubmitted = true
-			model.providerAPIKeyTextInput.Focus()
-			return model, nil
 		}
 	}
 
@@ -230,53 +241,82 @@ func updateProviderAPIKey(message tea.Msg, model Model) (tea.Model, tea.Cmd) {
 }
 
 func (model Model) View() string {
+	var view string
+
 	if !model.providerIDSubmitted {
-		return providerIDView(model)
+		view = providerIDView(model)
 	} else if !model.providerModelSubmitted {
-		return providerModelView(model)
+		view = providerModelView(model)
 	} else {
-		return providerAPIKeyView(model)
+		view = providerAPIKeyView(model)
 	}
+
+	return layoutMainStyle.Render("\n" + view + "\n\n")
 }
 
 func providerIDView(model Model) string {
-	providerIDView := "Select your provider:\n\n"
+	providerIDView := inputLabelStyle.Render("Select your provider:") + "\n\n"
 
 	for _, provider := range providers {
-		var providerCursor string
+		var providerText string
 		if model.providerID == provider.ID {
-			providerCursor = selectedOptionStyle.Render("[x] " + provider.Label)
+			providerText = inputSelectedStyle.Render("[x] " + provider.Label)
 		} else {
-			providerCursor = "[ ] " + provider.Label
+			providerText = "[ ] " + provider.Label
 		}
-		providerIDView += providerCursor + "\n"
+		providerIDView += providerText + "\n"
 	}
+
+	providerIDView += "\n" +
+		helpStyle.Render("j/k, up/down: ") + helpHighlightStyle.Render("select") +
+		helpSeparatorStyle +
+		helpStyle.Render("enter: ") + helpHighlightStyle.Render("confirm") +
+		helpSeparatorStyle +
+		helpStyle.Render("q/ctrl+c/esc: ") + helpHighlightStyle.Render("quit")
 
 	return providerIDView
 }
 
 func providerModelView(model Model) string {
-	providerModelView := "Select your provider's model:\n\n"
+	providerModelView := inputLabelStyle.Render("Select your provider's model") +
+		"\n\n"
 
 	if model.providerID > 0 && model.providerID <= len(providers) {
 		for _, providerModel := range providers[model.providerID-1].Models {
-			var providerModelCursor string
+			var providerModelText string
 			if model.providerModel == providerModel.ID {
-				providerModelCursor = selectedOptionStyle.Render("[x] " +
-					providerModel.Label)
+				providerModelText = inputSelectedStyle.Render("[x] " + providerModel.Label)
 			} else {
-				providerModelCursor = "[ ] " + providerModel.Label
+				providerModelText = "[ ] " + providerModel.Label
 			}
-			providerModelView += providerModelCursor + "\n"
+			providerModelView += providerModelText + "\n"
 		}
 	}
+
+	providerModelView += "\n" +
+		helpStyle.Render("j/k, up/down: ") + helpHighlightStyle.Render("select") +
+		helpSeparatorStyle +
+		helpStyle.Render("enter: ") + helpHighlightStyle.Render("confirm") +
+		helpSeparatorStyle +
+		helpStyle.Render("q/ctrl+c/esc: ") + helpHighlightStyle.Render("quit") +
+		helpSeparatorStyle +
+		helpStyle.Render("shift+tab: ") + helpHighlightStyle.Render("back")
 
 	return providerModelView
 }
 
 func providerAPIKeyView(model Model) string {
-	return "Provide your provider's API key:\n\n" +
-		model.providerAPIKeyTextInput.View() + "\n\n"
+	providerAPIKeyView := inputLabelStyle.Render("Provide your provider's API key:") +
+		"\n\n" + model.providerAPIKeyTextInput.View() + "\n"
+
+	providerAPIKeyView += "\n" +
+		helpStyle.Render("enter: ") + helpHighlightStyle.Render("confirm") +
+		helpSeparatorStyle +
+		helpStyle.Render("ctrl+c/esc: ") + helpHighlightStyle.Render("quit") +
+		helpSeparatorStyle +
+		helpStyle.Render("shift+tab: ") + helpHighlightStyle.Render("back")
+
+	return providerAPIKeyView
 }
 
 var initCommand = &cobra.Command{
