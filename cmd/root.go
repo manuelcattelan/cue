@@ -1,63 +1,31 @@
 package cmd
 
 import (
-	"errors"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-const (
-	configDirectoryName = "cue"
-	configFileName      = "config"
-	configFileType      = "yaml"
-)
-
-var rootConfig string
 var rootCommand = &cobra.Command{
-	Use:   "cue",
-	Short: "Generate LLM-ready, effective prompts directly from your CLI.",
+	Use: "cue",
 
 	PersistentPreRunE: func(command *cobra.Command, arguments []string) error {
+		// Environment variables must start with the `CUE_` prefix and they will be
+		// accessible through Viper without said prefix.
+		// For example:
+		//   - CUE_ENV_VAR is correctly recognized and loaded;
+		//   - CUE_ENV_VAR is made accessible through viper with key `ENV_VAR`.
 		viper.SetEnvPrefix("CUE")
+		// Tells Viper to automatically collect and load environment variables into
+		// runtime based on the rules above.
 		viper.AutomaticEnv()
-
-		if rootConfig != "" {
-			viper.SetConfigFile(rootConfig)
-		} else {
-			userConfigDirectory, userConfigDirectoryError := os.UserConfigDir()
-			if userConfigDirectoryError != nil {
-				return userConfigDirectoryError
-			}
-
-			viper.AddConfigPath(".")
-			viper.AddConfigPath(filepath.Join(
-				userConfigDirectory,
-				configDirectoryName,
-			))
-
-			viper.SetConfigName(configFileName)
-			viper.SetConfigType(configFileType)
-		}
-
-		if readInConfigError := viper.ReadInConfig(); readInConfigError != nil {
-			var configFileNotFoundError viper.ConfigFileNotFoundError
-			if !errors.As(readInConfigError, &configFileNotFoundError) {
-				return readInConfigError
-			}
-		}
-
-		bindFlagsError := viper.BindPFlags(command.Flags())
-		if bindFlagsError != nil {
-			return bindFlagsError
-		}
-
 		return nil
 	},
 
-	Run: func(command *cobra.Command, arguments []string) {},
+	RunE: func(command *cobra.Command, arguments []string) error {
+		return nil
+	},
 }
 
 func Execute() {
@@ -67,7 +35,4 @@ func Execute() {
 	}
 }
 
-func init() {
-	rootCommand.PersistentFlags().StringVar(&rootConfig, "config", "",
-		"configuration file")
-}
+func init() {}
