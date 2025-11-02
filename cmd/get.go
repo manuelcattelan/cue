@@ -115,13 +115,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case tea.KeyEnter:
-			textareaValue := m.textarea.Value()
+			textareaValue := strings.TrimSpace(m.textarea.Value())
 			if textareaValue == "" {
 				return m, tea.Batch(viewportCmd, textareaCmd)
 			}
 
 			m.messages = append(m.messages, anthropic.NewUserMessage(
-				anthropic.NewTextBlock(m.textarea.Value()),
+				anthropic.NewTextBlock(textareaValue),
 			))
 
 			m.textarea.Reset()
