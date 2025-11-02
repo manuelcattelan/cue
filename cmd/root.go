@@ -17,9 +17,10 @@ var rootCommand = &cobra.Command{
 		//   - CUE_ENV_VAR is correctly recognized and loaded;
 		//   - CUE_ENV_VAR is made accessible through viper with key `ENV_VAR`.
 		viper.SetEnvPrefix("CUE")
-		// Tells Viper to automatically collect and load environment variables into
+		// Tells Viper to automatically collect and load environment variables at
 		// runtime based on the rules above.
 		viper.AutomaticEnv()
+
 		return nil
 	},
 
