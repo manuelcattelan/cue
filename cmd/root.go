@@ -7,33 +7,26 @@ import (
 	"github.com/spf13/viper"
 )
 
-var rootCommand = &cobra.Command{
+var rootCmd = &cobra.Command{
 	Use: "cue",
 
-	PersistentPreRunE: func(command *cobra.Command, arguments []string) error {
-		// Environment variables must start with the `CUE_` prefix and they will be
-		// accessible through Viper without said prefix.
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// Environment variables must start with the `CUE_` prefix and they
+		// will be accessible from Viper without the `CUE_` prefix.
 		// For example:
 		//   - CUE_ENV_VAR is correctly recognized and loaded;
-		//   - CUE_ENV_VAR is made accessible through viper with key `ENV_VAR`.
+		//   - CUE_ENV_VAR is made accessible by Viper with key `ENV_VAR`.
 		viper.SetEnvPrefix("CUE")
 		// Tells Viper to automatically collect and load environment variables at
 		// runtime based on the rules above.
 		viper.AutomaticEnv()
-
-		return nil
 	},
 
-	RunE: func(command *cobra.Command, arguments []string) error {
-		return nil
-	},
+	Run: func(cmd *cobra.Command, args []string) {},
 }
 
 func Execute() {
-	executeError := rootCommand.Execute()
-	if executeError != nil {
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
-
-func init() {}
