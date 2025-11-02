@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	gap = "\n\n"
+	layoutGap         = "\n\n"
+	layoutPromptWidth = 2
 
 	convMaxTokens = 1024
 	convModel     = anthropic.ModelClaudeSonnet4_5
@@ -31,14 +32,27 @@ type assistantMsg struct {
 type model struct {
 	viewport viewport.Model
 	textarea textarea.Model
-	messages []anthropic.MessageParam
+
 	client   anthropic.Client
+	messages []anthropic.MessageParam
+
+	termWidth  int
+	termHeight int
 }
 
 func initialModel() model {
 	textarea := textarea.New()
 	textarea.ShowLineNumbers = false
+	textarea.SetHeight(1)
+	textarea.SetPromptFunc(layoutPromptWidth, func(lineIdx int) string {
+		if lineIdx == 0 {
+			return "> "
+		}
+		return "  "
+	})
+	textarea.Placeholder = "Describe your task..."
 	textarea.Focus()
+	textarea.FocusedStyle.CursorLine = lipgloss.NewStyle()
 
 	// Using zero values as default since the actual viewport's width and height
 	// will be overridden by `WindowSizeMsg` anyway.
@@ -58,7 +72,7 @@ func (m model) Init() tea.Cmd {
 	return nil
 }
 
-func (m *model) updateViewport() {
+func (m *model) updateViewportContent() {
 	formatted := make([]string, len(m.messages))
 	for i, msg := range m.messages {
 		var content strings.Builder
@@ -71,6 +85,25 @@ func (m *model) updateViewport() {
 	}
 
 	m.viewport.SetContent(strings.Join(formatted, "\n"))
+}
+
+func (m *model) updateViewportHeight() {
+	if len(m.messages) == 0 || m.termHeight == 0 {
+		return
+	}
+
+	// WARN: you should update this value whenever changes to how the divider is
+	// rendered are made.
+	// Dividers that outline the `textarea` component add a total of
+	// `layoutDividerHeight` lines between separator strings and newline
+	// characters.
+	layoutDividerHeight := 5
+
+	viewportContentHeight := m.viewport.TotalLineCount()
+	viewportMaxHeight := m.termHeight - m.textarea.Height() -
+		lipgloss.Height(layoutGap) - layoutDividerHeight
+
+	m.viewport.Height = min(viewportMaxHeight, viewportContentHeight)
 	m.viewport.GotoBottom()
 }
 
@@ -102,11 +135,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.viewport.Width = msg.Width
-		m.viewport.Height = msg.Height - m.textarea.Height() - lipgloss.Height(gap)
 		m.textarea.SetWidth(msg.Width)
 
+		m.termWidth = msg.Width
+		m.termHeight = msg.Height
+
 		if len(m.messages) > 0 {
-			m.updateViewport()
+			m.updateViewportContent()
+			m.updateViewportHeight()
 		}
 
 	case tea.KeyMsg:
@@ -125,7 +161,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			))
 
 			m.textarea.Reset()
-			m.updateViewport()
+			m.updateViewportContent()
+			m.updateViewportHeight()
 
 			return m, tea.Batch(
 				viewportCmd,
@@ -143,7 +180,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.messages = append(m.messages, msg.param)
 		}
 
-		m.updateViewport()
+		m.updateViewportContent()
+		m.updateViewportHeight()
 
 		return m, tea.Batch(viewportCmd, textareaCmd)
 	}
@@ -152,7 +190,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	return m.viewport.View() + gap + m.textarea.View()
+	// WARN: you should update the divider's height value inside the
+	// `updateViewportHeight` function whenever changes to how the divider is
+	// rendered are made.
+	divider := lipgloss.NewStyle().Foreground(lipgloss.Color("241")).
+		Render(strings.Repeat("─", m.termWidth))
+
+	if len(m.messages) == 0 {
+		return divider + "\n" + m.textarea.View() + "\n" + divider + "\n"
+	}
+
+	return m.viewport.View() + layoutGap +
+		divider + "\n" + m.textarea.View() + "\n" +
+		divider + "\n"
 }
 
 var getCmd = &cobra.Command{
