@@ -20,7 +20,7 @@ const (
 	layoutGap         = "\n\n"
 	layoutPromptWidth = 2
 
-	convMaxTokens = 1024
+	convMaxTokens = 8192
 	convModel     = anthropic.ModelClaudeSonnet4_5
 )
 
@@ -103,7 +103,7 @@ var convSysPrompt = []anthropic.TextBlockParam{
 		1. Use tag names that reflect the kind of information that they surround;
 		2. XML tagging must always be consistent: the same tag names must be used
 			throughout the prompt you generate and the prompt itself should reference
-			those tag names when discussing their content;
+			those tag names (between angular brackets) when discussing their content.
 		3. When dealing with hierarchical content, correctly apply XML tag nesting.
 		</rule>
 
@@ -213,7 +213,14 @@ func (m *model) updateViewportContent() {
 		formatted[i] = content.String()
 	}
 
-	m.viewport.SetContent(strings.Join(formatted, "\n"))
+	formattedContent := strings.Join(formatted, "\n")
+	if m.viewport.Width > 0 {
+		wrappedContent := lipgloss.NewStyle().Width(m.viewport.Width).
+			Render(formattedContent)
+		m.viewport.SetContent(wrappedContent)
+	} else {
+		m.viewport.SetContent(formattedContent)
+	}
 }
 
 func (m *model) updateViewportHeight() {
