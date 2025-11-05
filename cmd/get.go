@@ -213,7 +213,7 @@ func (m *model) updateViewportContent() {
 		formatted[i] = content.String()
 	}
 
-	formattedContent := strings.Join(formatted, "\n")
+	formattedContent := strings.Join(formatted, "\n\n")
 	if m.viewport.Width > 0 {
 		wrappedContent := lipgloss.NewStyle().Width(m.viewport.Width).
 			Render(formattedContent)
