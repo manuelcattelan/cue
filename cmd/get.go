@@ -9,6 +9,7 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/atotto/clipboard"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/bubbletea"
@@ -180,12 +181,15 @@ type assistantMsg struct {
 type model struct {
 	viewport viewport.Model
 	textarea textarea.Model
+	loader   spinner.Model
 
 	client   anthropic.Client
 	messages []anthropic.MessageParam
 
 	termWidth  int
 	termHeight int
+
+	waitingForResponse bool
 }
 
 func initialModel() model {
@@ -206,12 +210,16 @@ func initialModel() model {
 	// will be overridden by `WindowSizeMsg` anyway.
 	viewport := viewport.New(0, 0)
 
+	loader := spinner.New()
+	loader.Spinner = spinner.Ellipsis
+
 	clientAPIKey := viper.GetString("PROVIDER_API_KEY")
 	client := anthropic.NewClient(option.WithAPIKey(clientAPIKey))
 
 	return model{
 		viewport: viewport,
 		textarea: textarea,
+		loader:   loader,
 		client:   client,
 	}
 }
@@ -325,10 +333,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		viewportCmd tea.Cmd
 		textareaCmd tea.Cmd
+		loaderCmd   tea.Cmd
 	)
 
 	m.viewport, viewportCmd = m.viewport.Update(msg)
 	m.textarea, textareaCmd = m.textarea.Update(msg)
+
+	if m.waitingForResponse {
+		m.loader, loaderCmd = m.loader.Update(msg)
+	}
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -362,9 +375,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.updateViewportContent()
 			m.updateViewportHeight()
 
+			m.waitingForResponse = true
+			loaderCmd = m.loader.Tick
+
 			return m, tea.Batch(
 				viewportCmd,
 				textareaCmd,
+				loaderCmd,
 				getAssistantMsg(m.client, m.messages),
 			)
 
@@ -377,6 +394,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case assistantMsg:
+		m.waitingForResponse = false
+
 		if msg.err != nil {
 			m.messages = append(m.messages, anthropic.NewAssistantMessage(
 				anthropic.NewTextBlock(fmt.Sprintf("Error: %v", msg.err)),
@@ -391,7 +410,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(viewportCmd, textareaCmd)
 	}
 
-	return m, tea.Batch(viewportCmd, textareaCmd)
+	return m, tea.Batch(viewportCmd, textareaCmd, loaderCmd)
 }
 
 func (m model) View() string {
@@ -405,7 +424,12 @@ func (m model) View() string {
 		return divider + "\n" + m.textarea.View() + "\n" + divider + "\n"
 	}
 
-	return m.viewport.View() + layoutGap +
+	viewportContent := m.viewport.View()
+	if m.waitingForResponse {
+		viewportContent += "\n\n" + "Cueing" + m.loader.View()
+	}
+
+	return viewportContent + layoutGap +
 		divider + "\n" + m.textarea.View() + "\n" +
 		divider + "\n"
 }
