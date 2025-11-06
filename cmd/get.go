@@ -26,6 +26,12 @@ const (
 	convModel     = anthropic.ModelClaudeSonnet4_5
 )
 
+var (
+	styleTextareaCursorline = lipgloss.NewStyle()
+	styleRenderedContent    = lipgloss.NewStyle()
+	styleLayoutDivider      = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+)
+
 var convSysPrompt = []anthropic.TextBlockParam{
 	{
 		Text: `You're an experienced prompt engineer and today you will be writing
@@ -204,7 +210,7 @@ func initialModel() model {
 	})
 	textarea.Placeholder = "Describe your task..."
 	textarea.Focus()
-	textarea.FocusedStyle.CursorLine = lipgloss.NewStyle()
+	textarea.FocusedStyle.CursorLine = styleTextareaCursorline
 
 	// Using zero values as default since the actual viewport's width and height
 	// will be overridden by `WindowSizeMsg` anyway.
@@ -242,7 +248,7 @@ func (m *model) updateViewportContent() {
 
 	formattedContent := strings.Join(formatted, "\n\n")
 	if m.viewport.Width > 0 {
-		wrappedContent := lipgloss.NewStyle().Width(m.viewport.Width).
+		wrappedContent := styleRenderedContent.Width(m.viewport.Width).
 			Render(formattedContent)
 		m.viewport.SetContent(wrappedContent)
 	} else {
@@ -417,8 +423,7 @@ func (m model) View() string {
 	// WARN: you should update the divider's height value inside the
 	// `updateViewportHeight` function whenever changes to how the divider is
 	// rendered are made.
-	divider := lipgloss.NewStyle().Foreground(lipgloss.Color("241")).
-		Render(strings.Repeat("─", m.termWidth))
+	divider := styleLayoutDivider.Render(strings.Repeat("─", m.termWidth))
 
 	if len(m.messages) == 0 {
 		return divider + "\n" + m.textarea.View() + "\n" + divider + "\n"
