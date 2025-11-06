@@ -208,19 +208,20 @@ type model struct {
 	waitingForResponse bool
 }
 
+func promptFunc(lineIdx int) string {
+	if lineIdx == 0 {
+		return "> "
+	}
+	return "  "
+}
+
 func initialModel() model {
 	textarea := textarea.New()
 	textarea.ShowLineNumbers = false
 	textarea.SetHeight(1)
-	textarea.SetPromptFunc(layoutPromptWidth, func(lineIdx int) string {
-		if lineIdx == 0 {
-			return "> "
-		}
-		return "  "
-	})
-	textarea.Placeholder = "Describe your task..."
-	textarea.Focus()
+	textarea.SetPromptFunc(layoutPromptWidth, promptFunc)
 	textarea.FocusedStyle.CursorLine = styleTextareaCursorline
+	textarea.Focus()
 
 	// Using zero values as default since the actual viewport's width and height
 	// will be overridden by `WindowSizeMsg` anyway.
@@ -436,7 +437,7 @@ func (m model) View() string {
 	divider := styleLayoutDivider.Render(strings.Repeat("─", m.termWidth))
 
 	helpText := styleHelpText.Render(
-		styleHelpTextKey.Render("enter: ") + styleHelpTextAction.Render("newline") +
+		styleHelpTextKey.Render("enter: ") + styleHelpTextAction.Render("new line") +
 			styleHelpDot.Render() +
 			styleHelpTextKey.Render("ctrl+d: ") + styleHelpTextAction.Render("send") +
 			styleHelpDot.Render() +
