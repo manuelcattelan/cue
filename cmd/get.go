@@ -27,9 +27,20 @@ const (
 )
 
 var (
+	layoutMarginLeft = 2
+
+	colorMuted       = lipgloss.Color("241")
+	colorMutedMid    = lipgloss.Color("236")
+	colorMutedAccent = lipgloss.Color("247")
+	colorAccent      = lipgloss.Color("#FF9500")
+
 	styleTextareaCursorline = lipgloss.NewStyle()
 	styleRenderedContent    = lipgloss.NewStyle()
-	styleLayoutDivider      = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+	styleLayoutDivider      = lipgloss.NewStyle().Foreground(colorMuted)
+	styleHelpTextKey        = lipgloss.NewStyle().Foreground(colorMuted)
+	styleHelpTextAction     = lipgloss.NewStyle().Foreground(colorMutedAccent)
+	styleHelpText           = lipgloss.NewStyle().MarginLeft(layoutMarginLeft)
+	styleHelpDot            = lipgloss.NewStyle().Foreground(colorMutedMid).SetString(" • ")
 )
 
 var convSysPrompt = []anthropic.TextBlockParam{
@@ -425,8 +436,16 @@ func (m model) View() string {
 	// rendered are made.
 	divider := styleLayoutDivider.Render(strings.Repeat("─", m.termWidth))
 
+	helpText := styleHelpText.Render(
+		styleHelpTextKey.Render("enter: ") + styleHelpTextAction.Render("send") +
+			styleHelpDot.Render() +
+			styleHelpTextKey.Render("ctrl+y: ") + styleHelpTextAction.Render("copy prompt") +
+			styleHelpDot.Render() +
+			styleHelpTextKey.Render("ctrl+c/esc: ") + styleHelpTextAction.Render("quit"),
+	)
+
 	if len(m.messages) == 0 {
-		return divider + "\n" + m.textarea.View() + "\n" + divider + "\n"
+		return divider + "\n" + m.textarea.View() + "\n" + divider + "\n" + helpText
 	}
 
 	viewportContent := m.viewport.View()
@@ -436,7 +455,7 @@ func (m model) View() string {
 
 	return viewportContent + layoutGap +
 		divider + "\n" + m.textarea.View() + "\n" +
-		divider + "\n"
+		divider + "\n" + helpText
 }
 
 var getCmd = &cobra.Command{
