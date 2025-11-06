@@ -161,9 +161,13 @@ var convSysPrompt = []anthropic.TextBlockParam{
 		NOTE: this is an iterative process and it might take multiple exchanges
 		before the end user provides you with the full picture of what task has to
 		be implemented.
-		NOTE: if the task seems too broad for you to generate a detailed prompt that
-		follows the rules above or if you're simply unsure about any aspect, you're
-		allowed to prompt the end user for additional information.
+		NOTE: you MUST ALWAYS generate a prompt wrapped in the required tags, even
+		if the task description is high-level or incomplete. When the task seems
+		broad or you're unsure about specific aspects, generate the best possible
+		prompt based on the available information, then follow it with clarifying
+		questions that would help you refine the prompt in subsequent iterations.
+		Your response should always include both: the generated prompt first, then
+		any questions for additional context.
 		`,
 	},
 }
