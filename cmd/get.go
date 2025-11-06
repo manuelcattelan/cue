@@ -32,7 +32,6 @@ var (
 	colorMuted       = lipgloss.Color("241")
 	colorMutedMid    = lipgloss.Color("236")
 	colorMutedAccent = lipgloss.Color("247")
-	colorAccent      = lipgloss.Color("#FF9500")
 
 	styleTextareaCursorline = lipgloss.NewStyle()
 	styleRenderedContent    = lipgloss.NewStyle()
