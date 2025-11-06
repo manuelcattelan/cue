@@ -8,6 +8,7 @@ import (
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/bubbletea"
@@ -140,8 +141,22 @@ var convSysPrompt = []anthropic.TextBlockParam{
 		</rule>
 		</rules-list>
 
-		NOTE: it might be obvious to you at this point, but you are not actually 
-		completing the task here. You are writing instructions for another AI to 
+		<output-format>
+		Whenever you generate a prompt in your response, you MUST wrap the entire
+		prompt content inside <cue-generated-prompt> and </cue-generated-prompt> tags.
+		This is critical for proper extraction of the prompt text.
+
+		You may include additional text before or after these boundary tags (such as
+		clarifying questions, explanations, or follow-up suggestions), but the actual
+		prompt must always be contained within these tags.
+
+		NEVER use the <cue-generated-prompt> and </cue-generated-prompt> tags
+		anywhere else in your response or within the prompt content itself - this
+		tag is reserved exclusively as a boundary marker for the generated prompt.
+		</output-format>
+
+		NOTE: it might be obvious to you at this point, but you are not actually
+		completing the task here. You are writing instructions for another AI to
 		complete it.
 		NOTE: this is an iterative process and it might take multiple exchanges
 		before the end user provides you with the full picture of what task has to
@@ -243,6 +258,48 @@ func (m *model) updateViewportHeight() {
 	m.viewport.GotoBottom()
 }
 
+func (m *model) getLastGeneratedPrompt() tea.Cmd {
+	return func() tea.Msg {
+		var lastAssistantMsg *anthropic.MessageParam
+		for i := len(m.messages) - 1; i >= 0; i-- {
+			if m.messages[i].Role == anthropic.MessageParamRoleAssistant {
+				lastAssistantMsg = &m.messages[i]
+				break
+			}
+		}
+
+		if lastAssistantMsg == nil {
+			return nil
+		}
+
+		var content strings.Builder
+		for _, block := range lastAssistantMsg.Content {
+			if block.OfText != nil {
+				content.WriteString(block.OfText.Text)
+			}
+		}
+		contentString := content.String()
+
+		// WARN: update the value of these XML tags whenever the system prompt gets
+		// updated, if the prompt wrappers are specified differently.
+		promptStartTag := "<cue-generated-prompt>"
+		promptStartIdx := strings.Index(contentString, promptStartTag)
+
+		promptEndTag := "</cue-generated-prompt>"
+		promptEndIdx := strings.Index(contentString, promptEndTag)
+
+		var textToCopy string
+		if promptStartIdx != -1 && promptEndIdx != -1 && promptEndIdx > promptStartIdx {
+			textToCopy = contentString[promptStartIdx+len(promptStartTag) : promptEndIdx]
+			textToCopy = strings.TrimSpace(textToCopy)
+		} else {
+			textToCopy = contentString
+		}
+
+		return clipboard.WriteAll(textToCopy)
+	}
+}
+
 func getAssistantMsg(client anthropic.Client, messages []anthropic.MessageParam) tea.Cmd {
 	return func() tea.Msg {
 		response, err := client.Messages.New(context.TODO(), anthropic.MessageNewParams{
@@ -306,6 +363,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				textareaCmd,
 				getAssistantMsg(m.client, m.messages),
 			)
+
+		case tea.KeyCtrlY:
+			if len(m.messages) > 0 {
+				return m, m.getLastGeneratedPrompt()
+			}
+
+			return m, tea.Batch(viewportCmd, textareaCmd)
 		}
 
 	case assistantMsg:
