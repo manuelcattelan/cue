@@ -362,7 +362,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.viewport.Width = msg.Width
-		m.textarea.SetWidth(msg.Width)
+		m.textarea.SetWidth(msg.Width - layoutPromptWidth)
 
 		m.termWidth = msg.Width
 		m.termHeight = msg.Height
@@ -377,7 +377,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 
-		case tea.KeyEnter:
+		case tea.KeyCtrlD:
 			textareaValue := strings.TrimSpace(m.textarea.Value())
 			if textareaValue == "" {
 				return m, tea.Batch(viewportCmd, textareaCmd)
@@ -436,7 +436,9 @@ func (m model) View() string {
 	divider := styleLayoutDivider.Render(strings.Repeat("─", m.termWidth))
 
 	helpText := styleHelpText.Render(
-		styleHelpTextKey.Render("enter: ") + styleHelpTextAction.Render("send") +
+		styleHelpTextKey.Render("enter: ") + styleHelpTextAction.Render("newline") +
+			styleHelpDot.Render() +
+			styleHelpTextKey.Render("ctrl+d: ") + styleHelpTextAction.Render("send") +
 			styleHelpDot.Render() +
 			styleHelpTextKey.Render("ctrl+y: ") + styleHelpTextAction.Render("copy prompt") +
 			styleHelpDot.Render() +
