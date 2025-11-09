@@ -16,6 +16,7 @@
   "packageManager": "pnpm@10.16.1",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "esbuild": "0.25.12",
     "eslint": "^9.39.1",
@@ -28,8 +29,11 @@
     "typescript-eslint": "^8.46.3"
   },
   "dependencies": {
+    "commander": "^14.0.2",
+    "dotenv": "^17.2.3",
     "ink": "^6.4.0",
-    "react": "^19.2.0"
+    "react": "^19.2.0",
+    "zod": "^4.1.12"
   },
   "type": "module"
 }
