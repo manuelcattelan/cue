@@ -1,0 +1,23 @@
+#!/bin/sh
+
+echo "Running pre-commit checks..."
+
+echo "Running Prettier checks with 'pnpm run format:check'..."
+pnpm run format:check
+if [ $? -ne 0 ]; then
+  echo "𐄂 Prettier checks failed. Run 'pnpm run format' to fix formatting issues."
+  exit 1
+fi
+echo "✓ Prettier checks passed!"
+
+echo "Running ESLint checks with 'pnpm run lint:check'..."
+pnpm run lint:check
+if [ $? -ne 0 ]; then
+  echo "𐄂 ESLint checks failed. Run 'pnpm run lint' to fix linting issues."
+  exit 1
+fi
+echo "✓ ESLint check passed!"
+
+echo "All pre-commit checks passed!"
+
+exit 0
