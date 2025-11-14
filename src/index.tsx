@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import dotenv from "dotenv";
-import { render, Text, useApp, useInput } from "ink";
+import { Box, render, Text, useApp, useInput } from "ink";
 import { useMemo, useState } from "react";
 import * as z from "zod";
 
@@ -33,7 +33,7 @@ const Main = () => {
 
   const renderedInputText = useMemo(() => {
     if (inputText.length === 0) {
-      return "";
+      return chalk.inverse(" ");
     }
 
     let renderedInputTextResult = "";
@@ -69,6 +69,12 @@ const Main = () => {
           inputText.slice(inputCursorOffset, inputText.length);
         nextInputCursorOffset--;
       }
+    } else if (key.return) {
+      nextInputText =
+        inputText.slice(0, inputCursorOffset) +
+        "\n" +
+        inputText.slice(inputCursorOffset, inputText.length);
+      nextInputCursorOffset++;
     } else {
       nextInputText =
         inputText.slice(0, inputCursorOffset) +
@@ -90,11 +96,16 @@ const Main = () => {
   });
 
   return (
-    <Text>
-      {renderedInputText.length > 0
-        ? renderedInputText
-        : renderedInputPlaceholder}
-    </Text>
+    <Box flexDirection="row">
+      <Box width={2} flexShrink={0}>
+        <Text>&gt; </Text>
+      </Box>
+      <Text>
+        {renderedInputText.length > 0
+          ? renderedInputText
+          : renderedInputPlaceholder}
+      </Text>
+    </Box>
   );
 };
 
