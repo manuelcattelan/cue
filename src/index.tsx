@@ -15,84 +15,162 @@ Config.parse({ apiKey: process.env.API_KEY });
 const Main = () => {
   const { exit } = useApp();
 
-  const inputPlaceholder = "Describe your task...";
+  const inputPlaceholder = "placeholder";
 
-  const [inputText, setInputText] = useState<string>("");
-  const [inputCursorOffset, setInputCursorOffset] = useState<number>(
-    inputText.length,
+  const [currentInput, setCurrentInput] = useState<string>("");
+  const [currentCursorPosition, setCurrentCursorPosition] = useState<number>(
+    currentInput.length,
   );
+
+  const [desiredColumn, setDesiredColumn] = useState<number>(0);
 
   const renderedInputPlaceholder = useMemo(
     () =>
-      inputPlaceholder
+      inputPlaceholder && inputPlaceholder.length > 0
         ? chalk.inverse(inputPlaceholder[0]) +
           chalk.gray(inputPlaceholder.slice(1))
         : undefined,
     [inputPlaceholder],
   );
 
-  const renderedInputText = useMemo(() => {
-    if (inputText.length === 0) {
-      return chalk.inverse(" ");
+  const renderedCurrentInput = useMemo(() => {
+    if (currentInput.length === 0) {
+      return "";
     }
 
-    let renderedInputTextResult = "";
-    for (let index = 0; index < inputText.length; index++) {
-      const character = inputText[index];
-      renderedInputTextResult +=
-        index === inputCursorOffset ? chalk.inverse(character) : character;
+    const characters = [...currentInput].map((character, characterPosition) => {
+      if (characterPosition === currentCursorPosition) {
+        return character === "\n"
+          ? `${chalk.inverse(" ")}\n`
+          : chalk.inverse(character);
+      }
+      return character;
+    });
+
+    if (currentCursorPosition === currentInput.length) {
+      characters.push(chalk.inverse(" "));
     }
 
-    if (inputCursorOffset === inputText.length) {
-      renderedInputTextResult += chalk.inverse(" ");
-    }
+    return characters.join("");
+  }, [currentInput, currentCursorPosition]);
 
-    return renderedInputTextResult;
-  }, [inputText, inputCursorOffset]);
+  // Helper functions for multi-line cursor navigation
+  const getLines = (text: string) => {
+    const lines: Array<{ start: number; end: number; text: string }> = [];
+    let start = 0;
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (char === "\n") {
+        lines.push({ start, end: i, text: text.slice(start, i) });
+        start = i + 1;
+      }
+    }
+    lines.push({ start, end: text.length, text: text.slice(start) });
+    return lines;
+  };
+
+  const getCurrentLineInfo = (text: string, cursorOffset: number) => {
+    const lines = getLines(text);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line && cursorOffset >= line.start && cursorOffset <= line.end) {
+        return {
+          lineIndex: i,
+          line,
+          column: cursorOffset - line.start,
+          lines,
+        };
+      }
+    }
+    return null;
+  };
 
   useInput((input, key) => {
     if ((key.ctrl && input === "c") || key.escape) {
       exit();
     }
 
-    let nextInputCursorOffset = inputCursorOffset;
-    let nextInputText = inputText;
+    let nextCursorPosition = currentCursorPosition;
+    let nextInput = currentInput;
+    let nextDesiredColumn = desiredColumn;
 
     if (key.leftArrow) {
-      nextInputCursorOffset--;
+      nextCursorPosition--;
+      // Update desired column for horizontal movement
+      const lineInfo = getCurrentLineInfo(nextInput, nextCursorPosition);
+      if (lineInfo) {
+        nextDesiredColumn = lineInfo.column;
+      }
+    } else if (key.upArrow) {
+      const lineInfo = getCurrentLineInfo(currentInput, currentCursorPosition);
+      if (lineInfo && lineInfo.lineIndex > 0) {
+        const targetLine = lineInfo.lines[lineInfo.lineIndex - 1];
+        if (targetLine) {
+          const targetColumn = Math.min(desiredColumn, targetLine.text.length);
+          nextCursorPosition = targetLine.start + targetColumn;
+        }
+      }
     } else if (key.rightArrow) {
-      nextInputCursorOffset++;
+      nextCursorPosition++;
+      // Update desired column for horizontal movement
+      const lineInfo = getCurrentLineInfo(nextInput, nextCursorPosition);
+      if (lineInfo) {
+        nextDesiredColumn = lineInfo.column;
+      }
+    } else if (key.downArrow) {
+      const lineInfo = getCurrentLineInfo(currentInput, currentCursorPosition);
+      if (lineInfo && lineInfo.lineIndex < lineInfo.lines.length - 1) {
+        const targetLine = lineInfo.lines[lineInfo.lineIndex + 1];
+        if (targetLine) {
+          const targetColumn = Math.min(desiredColumn, targetLine.text.length);
+          nextCursorPosition = targetLine.start + targetColumn;
+        }
+      }
     } else if (key.backspace || key.delete) {
-      if (inputCursorOffset > 0) {
-        nextInputText =
-          inputText.slice(0, inputCursorOffset - 1) +
-          inputText.slice(inputCursorOffset, inputText.length);
-        nextInputCursorOffset--;
+      if (currentCursorPosition > 0) {
+        nextInput =
+          currentInput.slice(0, currentCursorPosition - 1) +
+          currentInput.slice(currentCursorPosition, currentInput.length);
+        nextCursorPosition--;
+        // Update desired column after deletion
+        const lineInfo = getCurrentLineInfo(nextInput, nextCursorPosition);
+        if (lineInfo) {
+          nextDesiredColumn = lineInfo.column;
+        }
       }
     } else if (key.return) {
-      nextInputText =
-        inputText.slice(0, inputCursorOffset) +
+      nextInput =
+        currentInput.slice(0, currentCursorPosition) +
         "\n" +
-        inputText.slice(inputCursorOffset, inputText.length);
-      nextInputCursorOffset++;
+        currentInput.slice(currentCursorPosition, currentInput.length);
+      nextCursorPosition++;
+      // After pressing Enter, we're at column 0 of the new line
+      nextDesiredColumn = 0;
+    } else if (key.ctrl && input === "d") {
     } else {
-      nextInputText =
-        inputText.slice(0, inputCursorOffset) +
+      nextInput =
+        currentInput.slice(0, currentCursorPosition) +
         input +
-        inputText.slice(inputCursorOffset, inputText.length);
-      nextInputCursorOffset += input.length;
+        currentInput.slice(currentCursorPosition, currentInput.length);
+      nextCursorPosition += input.length;
+      // Update desired column after text input
+      const lineInfo = getCurrentLineInfo(nextInput, nextCursorPosition);
+      if (lineInfo) {
+        nextDesiredColumn = lineInfo.column;
+      }
     }
 
-    if (nextInputCursorOffset < 0) {
-      nextInputCursorOffset = 0;
+    if (nextCursorPosition < 0) {
+      nextCursorPosition = 0;
     }
 
-    if (nextInputCursorOffset > nextInputText.length) {
-      nextInputCursorOffset = nextInputText.length;
+    if (nextCursorPosition > nextInput.length) {
+      nextCursorPosition = nextInput.length;
     }
 
-    setInputCursorOffset(nextInputCursorOffset);
-    setInputText(nextInputText);
+    setCurrentCursorPosition(nextCursorPosition);
+    setCurrentInput(nextInput);
+    setDesiredColumn(nextDesiredColumn);
   });
 
   return (
@@ -101,8 +179,8 @@ const Main = () => {
         <Text>&gt; </Text>
       </Box>
       <Text>
-        {renderedInputText.length > 0
-          ? renderedInputText
+        {renderedCurrentInput.length > 0
+          ? renderedCurrentInput
           : renderedInputPlaceholder}
       </Text>
     </Box>
