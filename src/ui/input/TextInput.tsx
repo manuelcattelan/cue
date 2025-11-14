@@ -58,8 +58,7 @@ export const TextInput = () => {
   const renderedInputPlaceholder = useMemo(
     () =>
       inputPlaceholder && inputPlaceholder.length > 0
-        ? chalk.inverse(inputPlaceholder[0]) +
-          chalk.gray(inputPlaceholder.slice(1))
+        ? chalk.inverse(inputPlaceholder[0]) + inputPlaceholder.slice(1)
         : undefined,
     [inputPlaceholder],
   );
