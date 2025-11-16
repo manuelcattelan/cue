@@ -264,6 +264,14 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
         </Text>
       </Box>
       <Separator />
+      <Box marginLeft={2}>
+        <Text>
+          {"arrows: navigate • "}
+          {"enter: new line • "}
+          {"ctrl+d: submit • "}
+          {"ctrl+c/esc: quit"}
+        </Text>
+      </Box>
     </Box>
   );
 };
