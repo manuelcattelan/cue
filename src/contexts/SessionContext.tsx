@@ -1,16 +1,17 @@
+import type { Message } from "../types/conversation.js";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 type SessionContextType = {
-  messages: string[];
-  addMessage: (message: string) => void;
+  messages: Message[];
+  addMessage: (message: Message) => void;
 };
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const addMessage = (message: string) => {
+  const addMessage = (message: Message) => {
     setMessages((prev) => [...prev, message]);
   };
 

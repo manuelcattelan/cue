@@ -45,7 +45,7 @@ const getLineCoordinatesAtPosition = (
 };
 
 type TextInputProps = {
-  onSubmit?: (text: string) => void;
+  onSubmit?: (content: string) => void;
 };
 
 export const TextInput = ({ onSubmit }: TextInputProps) => {
