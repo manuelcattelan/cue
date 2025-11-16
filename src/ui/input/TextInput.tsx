@@ -1,3 +1,4 @@
+import { Separator } from "../layout/Separator.js";
 import chalk from "chalk";
 import { Box, Text, useApp, useInput } from "ink";
 import { useMemo, useState } from "react";
@@ -43,7 +44,11 @@ const getLineCoordinatesAtPosition = (
   };
 };
 
-export const TextInput = () => {
+type TextInputProps = {
+  onSubmit?: (text: string) => void;
+};
+
+export const TextInput = ({ onSubmit }: TextInputProps) => {
   const { exit } = useApp();
 
   const inputPlaceholder = "Describe your task...";
@@ -133,6 +138,7 @@ export const TextInput = () => {
         if (lineCoordinates && lineCoordinates.lineRow > 0) {
           const targetLine =
             currentInputLinesWithBoundaries[lineCoordinates.lineRow - 1];
+
           if (targetLine) {
             const targetLineColumn = Math.min(
               lineColumnGoal,
@@ -157,6 +163,7 @@ export const TextInput = () => {
         ) {
           const targetLine =
             currentInputLinesWithBoundaries[lineCoordinates.lineRow + 1];
+
           if (targetLine) {
             const targetLineColumn = Math.min(
               lineColumnGoal,
@@ -198,8 +205,21 @@ export const TextInput = () => {
         break;
       }
 
-      // TODO: implement submit functionality
       case key.ctrl && input === "d": {
+        const trimmedInput = currentInput.trim();
+
+        if (trimmedInput.length === 0) {
+          break;
+        }
+
+        if (onSubmit) {
+          onSubmit(trimmedInput);
+        }
+
+        newInput = "";
+        newCursorPosition = 0;
+        newLineColumnGoal = 0;
+
         break;
       }
 
@@ -231,15 +251,19 @@ export const TextInput = () => {
   });
 
   return (
-    <Box flexDirection="row">
-      <Box width={2} flexShrink={0}>
-        <Text>&gt; </Text>
+    <Box flexDirection="column">
+      <Separator />
+      <Box flexDirection="row">
+        <Box width={2} flexShrink={0}>
+          <Text>&gt; </Text>
+        </Box>
+        <Text>
+          {renderedCurrentInput.length > 0
+            ? renderedCurrentInput
+            : renderedInputPlaceholder}
+        </Text>
       </Box>
-      <Text>
-        {renderedCurrentInput.length > 0
-          ? renderedCurrentInput
-          : renderedInputPlaceholder}
-      </Text>
+      <Separator />
     </Box>
   );
 };

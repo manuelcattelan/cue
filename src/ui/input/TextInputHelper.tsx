@@ -5,7 +5,7 @@ export const TextInputHelper = () => {
     <Box marginLeft={2}>
       <Text>
         {"arrows: navigate • "}
-        {"enter: newline • "}
+        {"enter: new line • "}
         {"ctrl+d: submit • "}
         {"ctrl+c/esc: quit"}
       </Text>
