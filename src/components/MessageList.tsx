@@ -26,7 +26,7 @@ export const MessageList = ({
       ))}
       {isLoadingAssistantMessage && (
         <Box marginBottom={messageListMargin}>
-          <Spinner type="line">Cueing...</Spinner>
+          <Spinner type="line">Cueing up...</Spinner>
         </Box>
       )}
     </Box>

@@ -51,7 +51,7 @@ type TextInputProps = {
 export const TextInput = ({ onSubmit }: TextInputProps) => {
   const { exit } = useApp();
 
-  const inputPlaceholder = "Describe your task...";
+  const inputPlaceholder = "Take your cue...";
 
   const [currentInput, setCurrentInput] = useState<string>("");
   const [currentCursorPosition, setCurrentCursorPosition] = useState<number>(
@@ -63,7 +63,8 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
   const renderedInputPlaceholder = useMemo(
     () =>
       inputPlaceholder && inputPlaceholder.length > 0
-        ? chalk.inverse(inputPlaceholder[0]) + inputPlaceholder.slice(1)
+        ? chalk.inverse(inputPlaceholder[0]) +
+          chalk.gray(inputPlaceholder.slice(1))
         : undefined,
     [inputPlaceholder],
   );
