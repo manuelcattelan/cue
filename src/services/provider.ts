@@ -1,5 +1,6 @@
 import type { Config } from "../lib/config.js";
 import { PROVIDER_MODEL, PROVIDER_MAX_TOKENS } from "../lib/constants.js";
+import { SYSTEM_PROMPT } from "../lib/provider.js";
 import type { Message } from "../types/conversation.js";
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -24,6 +25,7 @@ export const loadProviderService = (config: Config): ProviderService => {
       const assistantMessage = await client.messages.create({
         max_tokens: PROVIDER_MAX_TOKENS,
         messages: toProviderMessages(messages),
+        system: SYSTEM_PROMPT,
         model: PROVIDER_MODEL,
       });
 

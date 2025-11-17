@@ -1,10 +1,17 @@
 import { useServices } from "../contexts/ServiceContext.js";
 import { useSession } from "../contexts/SessionContext.js";
+import { extractGeneratedPrompt } from "../lib/parsing.js";
 import { MessageRole, type Message } from "../types/conversation.js";
+import clipboard from "clipboardy";
+import { useInput } from "ink";
+import { useState } from "react";
 
 export const useConversation = () => {
   const { messages, addMessage } = useSession();
   const { providerService } = useServices();
+
+  const [isLoadingAssistantMessage, setIsLoadingAssistantMessage] =
+    useState(false);
 
   const handleSubmit = async (content: string) => {
     const userMessage: Message = { role: MessageRole.User, content };
@@ -17,6 +24,7 @@ export const useConversation = () => {
     // service.
     const messagesWithUserMessage = [...messages, userMessage];
 
+    setIsLoadingAssistantMessage(true);
     try {
       const assistantMessage = await providerService.getAssistantMessage(
         messagesWithUserMessage,
@@ -24,11 +32,24 @@ export const useConversation = () => {
       addMessage({ role: MessageRole.Assistant, content: assistantMessage });
     } catch (error) {
       console.error("Failed to get assistant message: ", error);
+    } finally {
+      setIsLoadingAssistantMessage(false);
     }
   };
+
+  useInput((input, key) => {
+    if (key.ctrl && input === "y") {
+      const generatedPrompt = extractGeneratedPrompt(messages);
+
+      if (generatedPrompt) {
+        clipboard.writeSync(generatedPrompt);
+      }
+    }
+  });
 
   return {
     messages,
     handleSubmit,
+    isLoadingAssistantMessage,
   };
 };

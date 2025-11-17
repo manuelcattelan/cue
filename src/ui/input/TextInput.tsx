@@ -223,6 +223,12 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
         break;
       }
 
+      case key.ctrl && input === "y": {
+        // Clipboard copy is handled in useConversation hook
+        // This case prevents "y" from being inserted into the input
+        break;
+      }
+
       default: {
         newInput =
           currentInput.slice(0, currentCursorPosition) +
@@ -264,14 +270,6 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
         </Text>
       </Box>
       <Separator />
-      <Box marginLeft={2}>
-        <Text>
-          {"arrows: navigate • "}
-          {"enter: new line • "}
-          {"ctrl+d: submit • "}
-          {"ctrl+c/esc: quit"}
-        </Text>
-      </Box>
     </Box>
   );
 };
