@@ -32,7 +32,7 @@ export const MessageList = ({
       ))}
       {isLoadingAssistantMessage && (
         <Box marginBottom={messageListMargin}>
-          <MessageLoading type="line" />
+          <MessageLoading type="balloon" />
         </Box>
       )}
     </Box>
