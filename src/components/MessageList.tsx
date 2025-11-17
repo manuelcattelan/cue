@@ -1,5 +1,5 @@
-import type { Message } from "../types/conversation.js";
-import { Spinner } from "../ui/layout/Spinner.js";
+import { MessageRole, type Message } from "../types/conversation.js";
+import { MessageLoading } from "./MessageLoading.js";
 import { Box, Text } from "ink";
 
 type MessageListProps = {
@@ -21,12 +21,18 @@ export const MessageList = ({
     <Box flexDirection="column">
       {messages.map((message, index) => (
         <Box key={index} marginBottom={messageListMargin}>
-          <Text>{message.content}</Text>
+          <Text
+            backgroundColor={message.role === MessageRole.User ? "gray" : ""}
+          >
+            {message.role === MessageRole.User && "> "}
+            {message.content}
+            {message.role === MessageRole.User && " "}
+          </Text>
         </Box>
       ))}
       {isLoadingAssistantMessage && (
         <Box marginBottom={messageListMargin}>
-          <Spinner type="line">Cueing up...</Spinner>
+          <MessageLoading type="line" />
         </Box>
       )}
     </Box>

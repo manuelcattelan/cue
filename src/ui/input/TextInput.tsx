@@ -51,7 +51,7 @@ type TextInputProps = {
 export const TextInput = ({ onSubmit }: TextInputProps) => {
   const { exit } = useApp();
 
-  const inputPlaceholder = "Take your cue...";
+  const inputPlaceholder = "Take your cue…";
 
   const [currentInput, setCurrentInput] = useState<string>("");
   const [currentCursorPosition, setCurrentCursorPosition] = useState<number>(

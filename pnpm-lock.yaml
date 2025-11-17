@@ -31,6 +31,9 @@ importers:
       react:
         specifier: ^19.2.0
         version: 19.2.0
+      tinygradient:
+        specifier: ^2.0.1
+        version: 2.0.1
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -1761,6 +1764,18 @@ packages:
       }
     engines: { node: ">=18" }
 
+  tinycolor2@1.6.0:
+    resolution:
+      {
+        integrity: sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==,
+      }
+
+  tinygradient@2.0.1:
+    resolution:
+      {
+        integrity: sha512-V7K7sZvniKq4wLvDMGyvaAoZbeoVjCa19dMtMFmtrinK/yHiRig3sV9BefrRtw1N5l5QM2mzFBWCg2NGxaVZyw==,
+      }
+
   to-regex-range@5.0.1:
     resolution:
       {
@@ -2848,6 +2863,12 @@ snapshots:
       has-flag: 4.0.0
 
   system-architecture@0.1.0: {}
+
+  tinycolor2@1.6.0: {}
+
+  tinygradient@2.0.1:
+    dependencies:
+      tinycolor2: 1.6.0
 
   to-regex-range@5.0.1:
     dependencies:
