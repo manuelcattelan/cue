@@ -1,5 +1,3 @@
-import chalk from "chalk";
-
 export const colorPalette = {
   gray: {
     50: "#f9fafb",
@@ -21,31 +19,3 @@ export const semanticColors = {
   mutedDimmed: colorPalette.gray[700],
   mutedAccent: colorPalette.gray[300],
 };
-
-export function text(
-  text: string,
-  textColor: keyof typeof semanticColors,
-): string;
-
-export function text(
-  text: string,
-  textColor: keyof typeof colorPalette,
-  textShade: keyof (typeof colorPalette)[keyof typeof colorPalette],
-): string;
-
-export function text(
-  text: string,
-  textColor: keyof typeof colorPalette | keyof typeof semanticColors,
-  textShade?: keyof (typeof colorPalette)[keyof typeof colorPalette],
-): string {
-  if (textColor in semanticColors) {
-    return chalk.hex(semanticColors[textColor as keyof typeof semanticColors])(
-      text,
-    );
-  }
-
-  const color = textColor as keyof typeof colorPalette;
-  const colorShade = textShade as keyof (typeof colorPalette)[typeof color];
-
-  return chalk.hex(colorPalette[color][colorShade])(text);
-}
