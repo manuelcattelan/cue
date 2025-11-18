@@ -1,5 +1,5 @@
 import { MessageRole, type Message } from "../types/conversation.js";
-import { MessageLoading } from "./MessageLoading.js";
+import { AssistantLoading } from "./AssistantLoading.js";
 import { Box, Text } from "ink";
 
 type MessageListProps = {
@@ -7,7 +7,7 @@ type MessageListProps = {
   isLoadingAssistantMessage?: boolean;
 };
 
-export const MessageList = ({
+export const ConversationHistory = ({
   messages,
   isLoadingAssistantMessage = false,
 }: MessageListProps) => {
@@ -32,7 +32,7 @@ export const MessageList = ({
       ))}
       {isLoadingAssistantMessage && (
         <Box marginBottom={messageListMargin}>
-          <MessageLoading type="balloon" />
+          <AssistantLoading type="balloon" />
         </Box>
       )}
     </Box>

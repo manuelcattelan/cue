@@ -13,7 +13,7 @@ type MessageLoadingProps = {
   type: SpinnerName;
 };
 
-export const MessageLoading = ({ type }: MessageLoadingProps) => {
+export const AssistantLoading = ({ type }: MessageLoadingProps) => {
   const [spinnerFrame, setSpinnerFrame] = useState(0);
   const [shimmerPosition, setShimmerPosition] = useState(0);
 

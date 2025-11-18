@@ -1,7 +1,7 @@
 import { useConversation } from "../hooks/useConversation.js";
 import { TextInput } from "../ui/input/TextInput.js";
-import { HelpText } from "./HelpText.js";
-import { MessageList } from "./MessageList.js";
+import { ConversationHistory } from "./ConversationHistory.js";
+import { KeyboardShortcuts } from "./KeyboardShortcuts.js";
 import { Box } from "ink";
 
 export const Conversation = () => {
@@ -10,12 +10,12 @@ export const Conversation = () => {
 
   return (
     <Box flexDirection="column" marginTop={1} marginBottom={1}>
-      <MessageList
+      <ConversationHistory
         messages={messages}
         isLoadingAssistantMessage={isLoadingAssistantMessage}
       />
       <TextInput onSubmit={handleSubmit} />
-      <HelpText />
+      <KeyboardShortcuts />
     </Box>
   );
 };

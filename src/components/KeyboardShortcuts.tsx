@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
 
-export const HelpText = () => {
+export const KeyboardShortcuts = () => {
   return (
     <Box marginLeft={2}>
       <Text color="gray">
