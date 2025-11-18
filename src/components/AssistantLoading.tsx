@@ -1,10 +1,11 @@
+import { semanticColors } from "../lib/colors.js";
 import spinners, { type SpinnerName } from "cli-spinners";
 import { Text } from "ink";
 import { useEffect, useState } from "react";
 import tinygradient from "tinygradient";
 
-const SHIMMER_COLOR_BASE = "#424866";
-const SHIMMER_COLOR_HIGHLIGHT = "#7B7F9E";
+const SHIMMER_COLOR_BASE = semanticColors.muted;
+const SHIMMER_COLOR_HIGHLIGHT = semanticColors.mutedAccent;
 
 const SHIMMER_UPDATE_MS = 20;
 const SHIMMER_WAVE_WIDTH = 10;

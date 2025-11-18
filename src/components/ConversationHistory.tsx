@@ -1,3 +1,4 @@
+import { semanticColors } from "../lib/colors.js";
 import { MessageRole, type Message } from "../types/conversation.js";
 import { AssistantLoading } from "./AssistantLoading.js";
 import { Box, Text } from "ink";
@@ -22,7 +23,11 @@ export const ConversationHistory = ({
       {messages.map((message, index) => (
         <Box key={index} marginBottom={messageListMargin}>
           <Text
-            backgroundColor={message.role === MessageRole.User ? "gray" : ""}
+            backgroundColor={
+              message.role === MessageRole.User
+                ? semanticColors.mutedDimmed
+                : ""
+            }
           >
             {message.role === MessageRole.User && "> "}
             {message.content}
