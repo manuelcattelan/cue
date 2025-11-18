@@ -1,6 +1,6 @@
 import { Separator } from "../layout/Separator.js";
 import chalk from "chalk";
-import { Box, Text, useApp, useInput } from "ink";
+import { Box, Text, useInput } from "ink";
 import { useMemo, useState } from "react";
 
 type LineWithBoundaries = {
@@ -49,8 +49,6 @@ type TextInputProps = {
 };
 
 export const TextInput = ({ onSubmit }: TextInputProps) => {
-  const { exit } = useApp();
-
   const inputPlaceholder = "Take your cue…";
 
   const [currentInput, setCurrentInput] = useState<string>("");
@@ -96,11 +94,6 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
   );
 
   useInput((input, key) => {
-    // exit() terminates the program, no early return needed
-    if ((key.ctrl && input === "c") || key.escape) {
-      exit();
-    }
-
     let newInput = currentInput;
     let newCursorPosition = currentCursorPosition;
     let newLineColumnGoal = lineColumnGoal;
@@ -206,6 +199,14 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
         break;
       }
 
+      case key.ctrl && input === "u": {
+        newInput = "";
+        newCursorPosition = 0;
+        newLineColumnGoal = 0;
+
+        break;
+      }
+
       case key.ctrl && input === "d": {
         const trimmedInput = currentInput.trim();
 
@@ -225,8 +226,15 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
       }
 
       case key.ctrl && input === "y": {
-        // Clipboard copy is handled in useConversation hook
-        // This case prevents "y" from being inserted into the input
+        // Clipboard copy is handled in useConversation hook: this is needed in
+        // order to prevent the character "y" from being inserted into the input.
+        break;
+      }
+
+      case key.ctrl && input === "c":
+      case key.escape: {
+        // Exit is handled in useConversation hook: this is needed in order to
+        // prevent the character "c" from being inserted into the input.
         break;
       }
 

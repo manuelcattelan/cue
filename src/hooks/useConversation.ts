@@ -3,12 +3,13 @@ import { useSession } from "../contexts/SessionContext.js";
 import { extractGeneratedPrompt } from "../lib/parsing.js";
 import { MessageRole, type Message } from "../types/conversation.js";
 import clipboard from "clipboardy";
-import { useInput } from "ink";
+import { useApp, useInput } from "ink";
 import { useState } from "react";
 
 export const useConversation = () => {
   const { messages, addMessage } = useSession();
   const { providerService } = useServices();
+  const { exit } = useApp();
 
   const [isLoadingAssistantMessage, setIsLoadingAssistantMessage] =
     useState(false);
@@ -38,6 +39,10 @@ export const useConversation = () => {
   };
 
   useInput((input, key) => {
+    if ((key.ctrl && input === "c") || key.escape) {
+      exit();
+    }
+
     if (key.ctrl && input === "y") {
       const generatedPrompt = extractGeneratedPrompt(messages);
 
