@@ -1,3 +1,4 @@
+import { text } from "../../lib/colors.js";
 import { Separator } from "../layout/Separator.js";
 import chalk from "chalk";
 import { Box, Text, useInput } from "ink";
@@ -62,7 +63,7 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
     () =>
       inputPlaceholder && inputPlaceholder.length > 0
         ? chalk.inverse(inputPlaceholder[0]) +
-          chalk.gray(inputPlaceholder.slice(1))
+          text(inputPlaceholder.slice(1), "muted")
         : undefined,
     [inputPlaceholder],
   );
@@ -270,7 +271,7 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
       <Separator />
       <Box flexDirection="row">
         <Box width={2} flexShrink={0}>
-          <Text>&gt; </Text>
+          <Text>{text("> ", "mutedAccent")}</Text>
         </Box>
         <Text>
           {renderedCurrentInput.length > 0

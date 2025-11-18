@@ -1,26 +1,32 @@
+import { text } from "../lib/colors.js";
 import { Box, Text } from "ink";
 
 export const KeyboardShortcuts = () => {
   return (
     <Box marginLeft={2}>
-      <Text color="gray">
-        arrows: <Text color="white">navigate</Text>
-        <Text dimColor> • </Text>
+      <Text>
+        {text("arrows: ", "muted")}
+        {text("navigate", "mutedAccent")}
+        {text(" • ", "mutedDimmed")}
       </Text>
-      <Text color="gray">
-        enter: <Text color="white">new line</Text>
-        <Text dimColor> • </Text>
+      <Text>
+        {text("enter: ", "muted")}
+        {text("new line", "mutedAccent")}
+        {text(" • ", "mutedDimmed")}
       </Text>
-      <Text color="gray">
-        ctrl+d: <Text color="white">submit</Text>
-        <Text dimColor> • </Text>
+      <Text>
+        {text("ctrl+d: ", "muted")}
+        {text("submit", "mutedAccent")}
+        {text(" • ", "mutedDimmed")}
       </Text>
-      <Text color="gray">
-        ctrl+y: <Text color="white">copy prompt</Text>
-        <Text dimColor> • </Text>
+      <Text>
+        {text("ctrl+y: ", "muted")}
+        {text("copy prompt", "mutedAccent")}
+        {text(" • ", "mutedDimmed")}
       </Text>
-      <Text color="gray">
-        ctrl+c/esc: <Text color="white">quit</Text>
+      <Text>
+        {text("ctrl+c/esc: ", "muted")}
+        {text("quit", "mutedAccent")}
       </Text>
     </Box>
   );
