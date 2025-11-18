@@ -26,7 +26,7 @@ export const KeyboardShortcuts = () => {
         {chalk.hex(semanticColors.mutedDimmed)(" • ")}
       </Text>
       <Text>
-        {chalk.hex(semanticColors.muted)("ctrl+c/esc: ")}
+        {chalk.hex(semanticColors.muted)("esc: ")}
         {chalk.hex(semanticColors.mutedAccent)("quit")}
       </Text>
     </Box>

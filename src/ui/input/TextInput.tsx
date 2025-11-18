@@ -247,13 +247,6 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
         break;
       }
 
-      case key.ctrl && input === "c":
-      case key.escape: {
-        // Exit is handled in useConversation hook: this is needed in order to
-        // prevent the character "c" from being inserted into the input.
-        break;
-      }
-
       default: {
         newInput =
           currentInput.slice(0, currentCursorPosition) +

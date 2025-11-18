@@ -39,7 +39,7 @@ export const useConversation = () => {
   };
 
   useInput((input, key) => {
-    if ((key.ctrl && input === "c") || key.escape) {
+    if (key.escape) {
       exit();
     }
 
