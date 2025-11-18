@@ -201,9 +201,24 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
       }
 
       case key.ctrl && input === "u": {
-        newInput = "";
-        newCursorPosition = 0;
-        newLineColumnGoal = 0;
+        const lineCoordinates = getLineCoordinatesAtPosition(
+          currentInputLinesWithBoundaries,
+          currentCursorPosition,
+        );
+
+        if (lineCoordinates) {
+          const currentLine =
+            currentInputLinesWithBoundaries[lineCoordinates.lineRow];
+
+          if (currentLine) {
+            newInput =
+              currentInput.slice(0, currentLine.positionFrom) +
+              currentInput.slice(currentCursorPosition);
+
+            newCursorPosition = currentLine.positionFrom;
+            newLineColumnGoal = 0;
+          }
+        }
 
         break;
       }
