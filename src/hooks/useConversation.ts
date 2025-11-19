@@ -14,6 +14,7 @@ import {
 import clipboard from "clipboardy";
 import fs from "fs";
 import { useApp, useInput } from "ink";
+import path from "path";
 import { useState } from "react";
 
 export const useConversation = () => {
@@ -33,9 +34,13 @@ export const useConversation = () => {
         if (fs.statSync(contextFilePath).isDirectory()) {
           const directoryFiles = getDirectoryFiles(contextFilePath);
           for (const directoryFile of directoryFiles) {
+            const fullDirectoryFilePath = path.join(
+              contextFilePath,
+              directoryFile,
+            );
             contextFilesWithContent.push({
-              path: directoryFile,
-              content: readContextFileContent(directoryFile),
+              path: fullDirectoryFilePath,
+              content: readContextFileContent(fullDirectoryFilePath),
             });
           }
         } else {
@@ -72,8 +77,8 @@ export const useConversation = () => {
         messagesWithUserMessage,
       );
       addMessage({ role: MessageRole.Assistant, content: assistantMessage });
-    } catch (error) {
-      console.error("Failed to get assistant message: ", error);
+    } catch {
+      /* tslint:disable:no-empty */
     } finally {
       setIsLoadingAssistantMessage(false);
     }
