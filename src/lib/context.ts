@@ -35,3 +35,20 @@ function getDirectoryFilesRecursive(
 export function getDirectoryFiles(directory: string): string[] {
   return getDirectoryFilesRecursive(directory, directory);
 }
+
+export function getContextFilesPaths(input: string): string[] {
+  const matchPattern = /@([^\s\n]+)/g;
+  const matches = input.matchAll(matchPattern);
+
+  return Array.from(matches)
+    .map((match) => match[1])
+    .filter((path): path is string => path !== undefined);
+}
+
+export function readContextFileContent(contextFilePath: string): string | null {
+  try {
+    return fs.readFileSync(contextFilePath, "utf-8");
+  } catch {
+    return null;
+  }
+}

@@ -1,7 +1,15 @@
 import { useServices } from "../contexts/ServiceContext.js";
 import { useSession } from "../contexts/SessionContext.js";
+import {
+  getContextFilesPaths,
+  readContextFileContent,
+} from "../lib/context.js";
 import { extractGeneratedPrompt } from "../lib/parsing.js";
-import { MessageRole, type Message } from "../types/conversation.js";
+import {
+  MessageRole,
+  type ContextFile,
+  type Message,
+} from "../types/conversation.js";
 import clipboard from "clipboardy";
 import { useApp, useInput } from "ink";
 import { useState } from "react";
@@ -15,7 +23,19 @@ export const useConversation = () => {
     useState(false);
 
   const handleInputSubmit = async (content: string) => {
-    const userMessage: Message = { role: MessageRole.User, content };
+    const contextFilesPaths = getContextFilesPaths(content);
+    const contextFilesWithContent: ContextFile[] = contextFilesPaths.map(
+      (contextFilePath) => ({
+        path: contextFilePath,
+        content: readContextFileContent(contextFilePath),
+      }),
+    );
+
+    const userMessage: Message = {
+      role: MessageRole.User,
+      content,
+      contextFiles: contextFilesWithContent,
+    };
     addMessage(userMessage);
 
     // Build the updated messages array manually because React state updates are

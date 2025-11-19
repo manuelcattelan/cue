@@ -1,7 +1,7 @@
 import type { Config } from "../lib/config.js";
 import { PROVIDER_MODEL, PROVIDER_MAX_TOKENS } from "../lib/constants.js";
 import { SYSTEM_PROMPT } from "../lib/provider.js";
-import type { Message } from "../types/conversation.js";
+import { MessageRole, type Message } from "../types/conversation.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export type ProviderService = {
@@ -11,10 +11,34 @@ export type ProviderService = {
 const toProviderMessages = (
   messages: Message[],
 ): Anthropic.Messages.MessageParam[] => {
-  return messages.map((message) => ({
-    role: message.role,
-    content: message.content,
-  }));
+  return messages.map((message) => {
+    if (
+      message.role === MessageRole.User &&
+      message.contextFiles &&
+      message.contextFiles.length > 0
+    ) {
+      const messageContentBlocks: Anthropic.Messages.TextBlockParam[] = [];
+      for (const file of message.contextFiles) {
+        if (file.content !== null) {
+          messageContentBlocks.push({
+            type: "text",
+            text: `<file path="${file.path}">\n${file.content}\n</file>`,
+          });
+        }
+      }
+      messageContentBlocks.push({ type: "text", text: message.content });
+
+      return {
+        role: message.role,
+        content: messageContentBlocks,
+      };
+    }
+
+    return {
+      role: message.role,
+      content: message.content,
+    };
+  });
 };
 
 export const loadProviderService = (config: Config): ProviderService => {
