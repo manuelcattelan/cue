@@ -1,5 +1,4 @@
 import { semanticColors } from "../../lib/colors.js";
-import { Separator } from "../layout/Separator.js";
 import chalk from "chalk";
 import { Box, Text, useInput } from "ink";
 import { useMemo, useState } from "react";
@@ -46,18 +45,33 @@ const getLineCoordinatesAtPosition = (
 };
 
 type TextInputProps = {
-  onSubmit?: (content: string) => void;
+  controlledInput?: string;
+  controlledCursorPosition?: number;
+  disableNavigationKeys?: boolean;
+  onInputSubmit?: (content: string) => void;
+  onInputChange?: (input: string, cursorPosition: number) => void;
 };
 
-export const TextInput = ({ onSubmit }: TextInputProps) => {
+export const TextInput = ({
+  controlledInput,
+  controlledCursorPosition,
+  disableNavigationKeys = false,
+  onInputSubmit,
+  onInputChange,
+}: TextInputProps) => {
   const inputPlaceholder = "Take your cue…";
 
-  const [currentInput, setCurrentInput] = useState<string>("");
-  const [currentCursorPosition, setCurrentCursorPosition] = useState<number>(
-    currentInput.length,
-  );
+  const [internalInput, setInternalInput] = useState<string>("");
+  const [internalCursorPosition, setInternalCursorPosition] =
+    useState<number>(0);
 
   const [lineColumnGoal, setLineColumnGoal] = useState<number>(0);
+
+  const isControlledComponent = controlledInput !== undefined;
+  const currentInput = isControlledComponent ? controlledInput : internalInput;
+  const currentCursorPosition = isControlledComponent
+    ? (controlledCursorPosition ?? currentInput.length)
+    : internalCursorPosition;
 
   const renderedInputPlaceholder = useMemo(
     () =>
@@ -125,6 +139,10 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
       }
 
       case key.upArrow: {
+        if (disableNavigationKeys) {
+          break;
+        }
+
         const lineCoordinates = getLineCoordinatesAtPosition(
           currentInputLinesWithBoundaries,
           currentCursorPosition,
@@ -147,6 +165,10 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
       }
 
       case key.downArrow: {
+        if (disableNavigationKeys) {
+          break;
+        }
+
         const lineCoordinates = getLineCoordinatesAtPosition(
           currentInputLinesWithBoundaries,
           currentCursorPosition,
@@ -189,6 +211,10 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
       }
 
       case key.return: {
+        if (disableNavigationKeys) {
+          break;
+        }
+
         newInput =
           currentInput.slice(0, currentCursorPosition) +
           "\n" +
@@ -230,8 +256,8 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
           break;
         }
 
-        if (onSubmit) {
-          onSubmit(trimmedInput);
+        if (onInputSubmit) {
+          onInputSubmit(trimmedInput);
         }
 
         newInput = "";
@@ -269,25 +295,25 @@ export const TextInput = ({ onSubmit }: TextInputProps) => {
       Math.min(newCursorPosition, newInput.length),
     );
 
-    setCurrentInput(newInput);
-    setCurrentCursorPosition(newCursorPosition);
+    if (isControlledComponent) {
+      onInputChange?.(newInput, newCursorPosition);
+    } else {
+      setInternalInput(newInput);
+      setInternalCursorPosition(newCursorPosition);
+    }
     setLineColumnGoal(newLineColumnGoal);
   });
 
   return (
-    <Box flexDirection="column">
-      <Separator />
-      <Box flexDirection="row">
-        <Box width={2} flexShrink={0}>
-          <Text>{chalk.hex(semanticColors.mutedAccent)("> ")}</Text>
-        </Box>
-        <Text>
-          {renderedCurrentInput.length > 0
-            ? renderedCurrentInput
-            : renderedInputPlaceholder}
-        </Text>
+    <Box flexDirection="row">
+      <Box width={2} flexShrink={0}>
+        <Text>{chalk.hex(semanticColors.mutedAccent)("> ")}</Text>
       </Box>
-      <Separator />
+      <Text>
+        {renderedCurrentInput.length > 0
+          ? renderedCurrentInput
+          : renderedInputPlaceholder}
+      </Text>
     </Box>
   );
 };

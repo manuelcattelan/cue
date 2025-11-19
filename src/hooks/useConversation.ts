@@ -14,7 +14,7 @@ export const useConversation = () => {
   const [isLoadingAssistantMessage, setIsLoadingAssistantMessage] =
     useState(false);
 
-  const handleSubmit = async (content: string) => {
+  const handleInputSubmit = async (content: string) => {
     const userMessage: Message = { role: MessageRole.User, content };
     addMessage(userMessage);
 
@@ -54,7 +54,7 @@ export const useConversation = () => {
 
   return {
     messages,
-    handleSubmit,
+    handleInputSubmit,
     isLoadingAssistantMessage,
   };
 };

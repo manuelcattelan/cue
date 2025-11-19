@@ -2,33 +2,25 @@ import { semanticColors } from "../lib/colors.js";
 import chalk from "chalk";
 import { Box, Text } from "ink";
 
+const INPUT_SHORTCUTS = [
+  { shortcut: "arrows", description: "navigate" },
+  { shortcut: "enter", description: "new line" },
+  { shortcut: "ctrl+d", description: "submit" },
+  { shortcut: "ctrl+y", description: "copy prompt" },
+  { shortcut: "esc", description: "quit" },
+];
+
 export const KeyboardShortcuts = () => {
   return (
     <Box marginLeft={2}>
-      <Text>
-        {chalk.hex(semanticColors.muted)("arrows: ")}
-        {chalk.hex(semanticColors.mutedAccent)("navigate")}
-        {chalk.hex(semanticColors.mutedDimmed)(" • ")}
-      </Text>
-      <Text>
-        {chalk.hex(semanticColors.muted)("enter: ")}
-        {chalk.hex(semanticColors.mutedAccent)("new line")}
-        {chalk.hex(semanticColors.mutedDimmed)(" • ")}
-      </Text>
-      <Text>
-        {chalk.hex(semanticColors.muted)("ctrl+d: ")}
-        {chalk.hex(semanticColors.mutedAccent)("submit")}
-        {chalk.hex(semanticColors.mutedDimmed)(" • ")}
-      </Text>
-      <Text>
-        {chalk.hex(semanticColors.muted)("ctrl+y: ")}
-        {chalk.hex(semanticColors.mutedAccent)("copy prompt")}
-        {chalk.hex(semanticColors.mutedDimmed)(" • ")}
-      </Text>
-      <Text>
-        {chalk.hex(semanticColors.muted)("esc: ")}
-        {chalk.hex(semanticColors.mutedAccent)("quit")}
-      </Text>
+      {INPUT_SHORTCUTS.map((shortcut, index) => (
+        <Text key={shortcut.shortcut}>
+          {chalk.hex(semanticColors.muted)(`${shortcut.shortcut}: `)}
+          {chalk.hex(semanticColors.mutedAccent)(shortcut.description)}
+          {index < INPUT_SHORTCUTS.length - 1 &&
+            chalk.hex(semanticColors.mutedDimmed)(" • ")}
+        </Text>
+      ))}
     </Box>
   );
 };

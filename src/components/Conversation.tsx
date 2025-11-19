@@ -1,11 +1,10 @@
 import { useConversation } from "../hooks/useConversation.js";
-import { TextInput } from "../ui/input/TextInput.js";
 import { ConversationHistory } from "./ConversationHistory.js";
-import { KeyboardShortcuts } from "./KeyboardShortcuts.js";
+import { ConversationInput } from "./ConversationInput.js";
 import { Box } from "ink";
 
 export const Conversation = () => {
-  const { messages, handleSubmit, isLoadingAssistantMessage } =
+  const { messages, handleInputSubmit, isLoadingAssistantMessage } =
     useConversation();
 
   return (
@@ -14,8 +13,7 @@ export const Conversation = () => {
         messages={messages}
         isLoadingAssistantMessage={isLoadingAssistantMessage}
       />
-      <TextInput onSubmit={handleSubmit} />
-      <KeyboardShortcuts />
+      <ConversationInput handleInputSubmit={handleInputSubmit} />
     </Box>
   );
 };
