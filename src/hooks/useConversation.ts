@@ -1,3 +1,4 @@
+import { useNotification } from "../contexts/NotificationContext.js";
 import { useServices } from "../contexts/ServiceContext.js";
 import { useSession } from "../contexts/SessionContext.js";
 import {
@@ -11,6 +12,7 @@ import {
   type ContextFile,
   type Message,
 } from "../types/conversation.js";
+import { NotificationType } from "../types/notification.js";
 import clipboard from "clipboardy";
 import fs from "fs";
 import { useApp, useInput } from "ink";
@@ -20,6 +22,7 @@ import { useState } from "react";
 export const useConversation = () => {
   const { messages, addMessage } = useSession();
   const { providerService } = useServices();
+  const { showNotification } = useNotification();
   const { exit } = useApp();
 
   const [isLoadingAssistantMessage, setIsLoadingAssistantMessage] =
@@ -94,6 +97,16 @@ export const useConversation = () => {
 
       if (generatedPrompt) {
         clipboard.writeSync(generatedPrompt);
+
+        showNotification({
+          message: "Prompt copied to clipboard!",
+          type: NotificationType.Success,
+        });
+      } else {
+        showNotification({
+          message: "Failed to copy prompt to clipboard.",
+          type: NotificationType.Error,
+        });
       }
     }
   });

@@ -1,4 +1,6 @@
+import { useNotification } from "../contexts/NotificationContext.js";
 import { useContextPicker } from "../hooks/useContextPicker.js";
+import { Notification } from "../ui/feedback/Notification.js";
 import { TextInput } from "../ui/input/TextInput.js";
 import { Separator } from "../ui/layout/Separator.js";
 import { ContextPicker } from "./ContextPicker.js";
@@ -13,6 +15,8 @@ type ConversationInputProps = {
 export const ConversationInput = ({
   handleInputSubmit,
 }: ConversationInputProps) => {
+  const { notification } = useNotification();
+
   const [currentInput, setCurrentInput] = useState("");
   const [currentCursorPosition, setCurrentCursorPosition] = useState(0);
 
@@ -122,6 +126,8 @@ export const ConversationInput = ({
           onSelectContextPickerFile={handleSelectContextPickerFile}
           onCancelContextPicker={toggleContextPickerOff}
         />
+      ) : notification ? (
+        <Notification notification={notification} />
       ) : (
         <KeyboardShortcuts />
       )}

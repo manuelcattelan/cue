@@ -1,4 +1,5 @@
 import { Conversation } from "./components/Conversation.js";
+import { NotificationProvider } from "./contexts/NotificationContext.js";
 import { ServiceProvider } from "./contexts/ServiceContext.js";
 import { SessionProvider } from "./contexts/SessionContext.js";
 import { loadConfig } from "./lib/config.js";
@@ -11,9 +12,11 @@ const services = loadServices(config);
 const Main = () => {
   return (
     <ServiceProvider services={services}>
-      <SessionProvider>
-        <Conversation />
-      </SessionProvider>
+      <NotificationProvider>
+        <SessionProvider>
+          <Conversation />
+        </SessionProvider>
+      </NotificationProvider>
     </ServiceProvider>
   );
 };
