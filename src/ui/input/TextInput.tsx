@@ -47,7 +47,7 @@ const getLineCoordinatesAtPosition = (
 type TextInputProps = {
   controlledInput?: string;
   controlledCursorPosition?: number;
-  disableNavigationKeys?: boolean;
+  disableConflictingKeys?: boolean;
   onInputSubmit?: (content: string) => void;
   onInputChange?: (input: string, cursorPosition: number) => void;
 };
@@ -55,7 +55,7 @@ type TextInputProps = {
 export const TextInput = ({
   controlledInput,
   controlledCursorPosition,
-  disableNavigationKeys = false,
+  disableConflictingKeys = false,
   onInputSubmit,
   onInputChange,
 }: TextInputProps) => {
@@ -139,7 +139,7 @@ export const TextInput = ({
       }
 
       case key.upArrow: {
-        if (disableNavigationKeys) {
+        if (disableConflictingKeys) {
           break;
         }
 
@@ -165,7 +165,7 @@ export const TextInput = ({
       }
 
       case key.downArrow: {
-        if (disableNavigationKeys) {
+        if (disableConflictingKeys) {
           break;
         }
 
@@ -193,6 +193,12 @@ export const TextInput = ({
         break;
       }
 
+      case key.ctrl && (input === "n" || input === "p"): {
+        if (disableConflictingKeys) {
+          break;
+        }
+      }
+
       case key.backspace || key.delete: {
         if (currentCursorPosition > 0) {
           newInput =
@@ -211,7 +217,7 @@ export const TextInput = ({
       }
 
       case key.return: {
-        if (disableNavigationKeys) {
+        if (disableConflictingKeys) {
           break;
         }
 

@@ -97,8 +97,11 @@ export const ConversationInput = ({
       currentCursorPosition,
     );
 
-    setCurrentInput(newInput);
-    setCurrentCursorPosition(newCursorPosition);
+    const newInputWithWhitespace = `${newInput} `;
+    const newCursorPositionWithWhitespace = newCursorPosition + 1;
+
+    setCurrentInput(newInputWithWhitespace);
+    setCurrentCursorPosition(newCursorPositionWithWhitespace);
   };
 
   return (
@@ -109,7 +112,7 @@ export const ConversationInput = ({
         controlledCursorPosition={currentCursorPosition}
         onInputChange={handleInputChange}
         onInputSubmit={handleInputSubmit}
-        disableNavigationKeys={isContextPickerOpen}
+        disableConflictingKeys={isContextPickerOpen}
       />
       <Separator />
       {isContextPickerOpen ? (

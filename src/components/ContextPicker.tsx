@@ -40,9 +40,10 @@ export const ContextPicker: FC<ContextPickerProps> = ({
       .map((result) => result.item);
   }, [contextPickerFiles, contextPickerQuery]);
 
-  useInput((_, key) => {
+  useInput((input, key) => {
     switch (true) {
-      case key.upArrow: {
+      case key.upArrow:
+      case key.ctrl && input === "p": {
         setCurrentContextPickerFileIndex(
           (prev) =>
             (prev - 1 + filteredContextPickerFiles.length) %
@@ -52,7 +53,8 @@ export const ContextPicker: FC<ContextPickerProps> = ({
         break;
       }
 
-      case key.downArrow: {
+      case key.downArrow:
+      case key.ctrl && input === "n": {
         setCurrentContextPickerFileIndex(
           (prev) => (prev + 1) % filteredContextPickerFiles.length,
         );
