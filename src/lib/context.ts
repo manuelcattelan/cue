@@ -32,8 +32,47 @@ function getDirectoryFilesRecursive(
   return directoryFiles;
 }
 
+function getDirectoryFilesAndDirectoriesRecursive(
+  currentDirectory: string,
+  initialDirectory: string,
+): string[] {
+  const filesAndDirectories: string[] = [];
+
+  try {
+    const dirents = fs.readdirSync(currentDirectory, { withFileTypes: true });
+
+    for (const dirent of dirents) {
+      const direntFullPath = path.join(currentDirectory, dirent.name);
+      const direntRelativePath = path.relative(
+        initialDirectory,
+        direntFullPath,
+      );
+
+      if (dirent.isDirectory()) {
+        filesAndDirectories.push(direntRelativePath + path.sep);
+        filesAndDirectories.push(
+          ...getDirectoryFilesAndDirectoriesRecursive(
+            direntFullPath,
+            initialDirectory,
+          ),
+        );
+      } else if (dirent.isFile()) {
+        filesAndDirectories.push(direntRelativePath);
+      }
+    }
+  } catch {
+    /* tslint:disable:no-empty */
+  }
+
+  return filesAndDirectories;
+}
+
 export function getDirectoryFiles(directory: string): string[] {
   return getDirectoryFilesRecursive(directory, directory);
+}
+
+export function getDirectoryFilesAndDirectories(directory: string): string[] {
+  return getDirectoryFilesAndDirectoriesRecursive(directory, directory);
 }
 
 export function getContextFilesPaths(input: string): string[] {

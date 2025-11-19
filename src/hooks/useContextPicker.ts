@@ -1,4 +1,4 @@
-import { getDirectoryFiles } from "../lib/context.js";
+import { getDirectoryFilesAndDirectories } from "../lib/context.js";
 import { useState } from "react";
 
 type UseContextPickerReturn = {
@@ -29,7 +29,7 @@ export const useContextPicker = (): UseContextPickerReturn => {
   ] = useState(0);
   const [contextPickerQuery, setContextPickerQuery] = useState("");
   const [contextPickerFiles] = useState<string[]>(() =>
-    getDirectoryFiles(process.cwd()),
+    getDirectoryFilesAndDirectories(process.cwd()),
   );
 
   const toggleContextPickerOn = (

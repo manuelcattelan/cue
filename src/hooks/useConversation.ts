@@ -2,6 +2,7 @@ import { useServices } from "../contexts/ServiceContext.js";
 import { useSession } from "../contexts/SessionContext.js";
 import {
   getContextFilesPaths,
+  getDirectoryFiles,
   readContextFileContent,
 } from "../lib/context.js";
 import { extractGeneratedPrompt } from "../lib/parsing.js";
@@ -11,6 +12,7 @@ import {
   type Message,
 } from "../types/conversation.js";
 import clipboard from "clipboardy";
+import fs from "fs";
 import { useApp, useInput } from "ink";
 import { useState } from "react";
 
@@ -24,12 +26,31 @@ export const useConversation = () => {
 
   const handleInputSubmit = async (content: string) => {
     const contextFilesPaths = getContextFilesPaths(content);
-    const contextFilesWithContent: ContextFile[] = contextFilesPaths.map(
-      (contextFilePath) => ({
-        path: contextFilePath,
-        content: readContextFileContent(contextFilePath),
-      }),
-    );
+    const contextFilesWithContent: ContextFile[] = [];
+
+    for (const contextFilePath of contextFilesPaths) {
+      try {
+        if (fs.statSync(contextFilePath).isDirectory()) {
+          const directoryFiles = getDirectoryFiles(contextFilePath);
+          for (const directoryFile of directoryFiles) {
+            contextFilesWithContent.push({
+              path: directoryFile,
+              content: readContextFileContent(directoryFile),
+            });
+          }
+        } else {
+          contextFilesWithContent.push({
+            path: contextFilePath,
+            content: readContextFileContent(contextFilePath),
+          });
+        }
+      } catch {
+        contextFilesWithContent.push({
+          path: contextFilePath,
+          content: null,
+        });
+      }
+    }
 
     const userMessage: Message = {
       role: MessageRole.User,
