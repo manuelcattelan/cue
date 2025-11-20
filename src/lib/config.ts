@@ -10,7 +10,7 @@ const ConfigSchema: z.ZodType<Config> = z.object({
 });
 
 export const loadConfig = (): Config => {
-  dotenv.config();
+  dotenv.config({ quiet: true });
 
   return ConfigSchema.parse({ apiKey: process.env.API_KEY });
 };

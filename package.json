@@ -1,19 +1,26 @@
 {
-  "name": "cue",
+  "name": "@manuelcattelan/cue",
   "version": "1.0.0",
   "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "packageManager": "pnpm@10.16.1",
+  "bin": {
+    "cue": "./dist/index.js"
+  },
+  "repository": "https://github.com/manuelcattelan/cue",
   "scripts": {
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "lint:check": "eslint .",
     "lint": "eslint --fix .",
     "build": "node scripts/build.js",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "publish:npm": "pnpm publish --registry=https://registry.npmjs.org",
+    "publish:github": "pnpm publish --registry=https://npm.pkg.github.com"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.16.1",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
@@ -41,6 +48,5 @@
     "react": "^19.2.0",
     "tinygradient": "^2.0.1",
     "zod": "^4.1.12"
-  },
-  "type": "module"
+  }
 }

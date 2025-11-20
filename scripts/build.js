@@ -5,10 +5,9 @@ import { build } from "esbuild";
 // calls, which aren't natively supported in ES modules. The createRequire()
 // API provides this compatibility layer, allowing mixed CommonJS/ESM
 // dependencies to work together.
-const buildBanner = `
+const buildBanner = `#!/usr/bin/env node
   import { createRequire } from 'module';
-  const require = createRequire(import.meta.url);
-`;
+  const require = createRequire(import.meta.url);`;
 
 const buildConfig = {
   entryPoints: ["src/index.tsx"],
