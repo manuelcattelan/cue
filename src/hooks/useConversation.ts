@@ -15,7 +15,7 @@ import {
 import { NotificationType } from "../types/notification.js";
 import clipboard from "clipboardy";
 import fs from "fs";
-import { useApp, useInput } from "ink";
+import { useInput } from "ink";
 import path from "path";
 import { useState } from "react";
 
@@ -23,7 +23,6 @@ export const useConversation = () => {
   const { messages, addMessage } = useSession();
   const { providerService } = useServices();
   const { showNotification } = useNotification();
-  const { exit } = useApp();
 
   const [isLoadingAssistantMessage, setIsLoadingAssistantMessage] =
     useState(false);
@@ -88,10 +87,6 @@ export const useConversation = () => {
   };
 
   useInput((input, key) => {
-    if (key.escape) {
-      exit();
-    }
-
     if (key.ctrl && input === "y") {
       const generatedPrompt = extractGeneratedPrompt(messages);
 

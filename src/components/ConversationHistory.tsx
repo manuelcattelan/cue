@@ -1,4 +1,8 @@
 import { semanticColors } from "../lib/colors.js";
+import {
+  stripGeneratedPromptTags,
+  stripFollowUpQuestions,
+} from "../lib/parsing.js";
 import { MessageRole, type Message } from "../types/conversation.js";
 import { AssistantLoading } from "./AssistantLoading.js";
 import { Box, Text } from "ink";
@@ -20,21 +24,29 @@ export const ConversationHistory = ({
 
   return (
     <Box flexDirection="column">
-      {messages.map((message, index) => (
-        <Box key={index} marginBottom={messageListMargin}>
-          <Text
-            backgroundColor={
-              message.role === MessageRole.User
-                ? semanticColors.mutedDimmed
-                : ""
-            }
-          >
-            {message.role === MessageRole.User && "> "}
-            {message.content}
-            {message.role === MessageRole.User && " "}
-          </Text>
-        </Box>
-      ))}
+      {messages.map((message, index) => {
+        let content = message.content;
+        if (message.role === MessageRole.Assistant) {
+          content = stripFollowUpQuestions(content);
+          content = stripGeneratedPromptTags(content);
+        }
+
+        return (
+          <Box key={index} marginBottom={messageListMargin}>
+            <Text
+              backgroundColor={
+                message.role === MessageRole.User
+                  ? semanticColors.mutedDimmed
+                  : ""
+              }
+            >
+              {message.role === MessageRole.User && "> "}
+              {content}
+              {message.role === MessageRole.User && " "}
+            </Text>
+          </Box>
+        );
+      })}
       {isLoadingAssistantMessage && (
         <Box marginBottom={messageListMargin}>
           <AssistantLoading type="balloon" />

@@ -1,6 +1,8 @@
 import {
   GENERATED_PROMPT_START_TAG,
   GENERATED_PROMPT_END_TAG,
+  GENERATED_FOLLOW_UP_QUESTIONS_START_TAG,
+  GENERATED_FOLLOW_UP_QUESTIONS_END_TAG,
 } from "./constants.js";
 import type { Anthropic } from "@anthropic-ai/sdk/client.js";
 
@@ -99,7 +101,7 @@ export const SYSTEM_PROMPT: Anthropic.Messages.TextBlockParam[] = [
 
 		Craft effective roles by:
 		1. Being specific: "You are an experienced [role] specializing in [domain]"
-			instead of just "You are helpful".
+			instead of just "You are helpful";
 		2. Including relevant domain expertise in the role definition at the start
 			of the prompt you generate.
 		</rule>
@@ -135,6 +137,38 @@ export const SYSTEM_PROMPT: Anthropic.Messages.TextBlockParam[] = [
     tags anywhere else in your response or within the prompt content itself - this
 		tag is reserved exclusively as a boundary marker for the generated prompt.
 		</output-format>
+
+		<follow-up-questions>
+		When you need clarification to improve the generated prompt, you can include
+		follow-up questions AFTER the ${GENERATED_PROMPT_END_TAG} tag. These questions
+		help you gather more context for refining the prompt in subsequent iterations.
+
+		If you have follow-up questions, wrap them in ${GENERATED_FOLLOW_UP_QUESTIONS_START_TAG}
+		and ${GENERATED_FOLLOW_UP_QUESTIONS_END_TAG} tags using this exact format:
+
+		<example>
+		${GENERATED_FOLLOW_UP_QUESTIONS_START_TAG}
+		<question question-id="question-1">
+    What is the primary goal of this task?
+    </question>
+		<question question-id="question-2">
+    Are there any specific constraints or limitations?
+    </question>
+		<question question-id="question-3">
+    Who is the target audience?
+    </question>
+		${GENERATED_FOLLOW_UP_QUESTIONS_END_TAG}
+		</example>
+
+		Rules for follow-up questions:
+		1. Each question must have a unique question-id attribute (e.g., "question-1",
+      "question-2", "question-3");
+		3. Each question must be clear, concise, and focused on improving the prompt;
+		4. Limit to 3-5 questions maximum to avoid overwhelming the end user;
+		5. Questions must appear AFTER the ${GENERATED_PROMPT_END_TAG} tag;
+		6. NEVER use the ${GENERATED_FOLLOW_UP_QUESTIONS_START_TAG} and
+      ${GENERATED_FOLLOW_UP_QUESTIONS_END_TAG} tags anywhere else in your response.
+		</follow-up-questions>
 
 		NOTE: it might be obvious to you at this point, but you are not actually
 		completing the task here. You are writing instructions for another AI to

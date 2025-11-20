@@ -20,3 +20,8 @@ export type AssistantMessage = {
 };
 
 export type Message = UserMessage | AssistantMessage;
+
+export type Question = {
+  id: string;
+  content: string;
+};

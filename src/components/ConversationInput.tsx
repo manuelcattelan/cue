@@ -6,19 +6,21 @@ import { Separator } from "../ui/layout/Separator.js";
 import { ContextPicker } from "./ContextPicker.js";
 import { KeyboardShortcuts } from "./KeyboardShortcuts.js";
 import { Box } from "ink";
-import { useState } from "react";
 
 type ConversationInputProps = {
-  handleInputSubmit: (content: string) => void;
+  currentInput: string;
+  currentCursorPosition: number;
+  onInputChange: (newInput: string, newCursorPosition: number) => void;
+  onInputSubmit: (content: string) => void;
 };
 
 export const ConversationInput = ({
-  handleInputSubmit,
+  currentInput,
+  currentCursorPosition,
+  onInputChange,
+  onInputSubmit,
 }: ConversationInputProps) => {
   const { notification } = useNotification();
-
-  const [currentInput, setCurrentInput] = useState("");
-  const [currentCursorPosition, setCurrentCursorPosition] = useState(0);
 
   const {
     isContextPickerOpen,
@@ -32,9 +34,11 @@ export const ConversationInput = ({
     updateContextPickerQuery,
   } = useContextPicker();
 
-  const handleInputChange = (newInput: string, newCursorPosition: number) => {
-    setCurrentInput(newInput);
-    setCurrentCursorPosition(newCursorPosition);
+  const onInputChangeInternal = (
+    newInput: string,
+    newCursorPosition: number,
+  ) => {
+    onInputChange(newInput, newCursorPosition);
 
     const lastInputCharacter =
       newCursorPosition > 0 ? newInput[newCursorPosition - 1] : undefined;
@@ -104,8 +108,7 @@ export const ConversationInput = ({
     const newInputWithWhitespace = `${newInput} `;
     const newCursorPositionWithWhitespace = newCursorPosition + 1;
 
-    setCurrentInput(newInputWithWhitespace);
-    setCurrentCursorPosition(newCursorPositionWithWhitespace);
+    onInputChange(newInputWithWhitespace, newCursorPositionWithWhitespace);
   };
 
   return (
@@ -114,8 +117,8 @@ export const ConversationInput = ({
       <TextInput
         controlledInput={currentInput}
         controlledCursorPosition={currentCursorPosition}
-        onInputChange={handleInputChange}
-        onInputSubmit={handleInputSubmit}
+        onInputChange={onInputChangeInternal}
+        onInputSubmit={onInputSubmit}
         disableConflictingKeys={isContextPickerOpen}
       />
       <Separator />
