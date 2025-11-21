@@ -17,7 +17,7 @@ import clipboard from "clipboardy";
 import fs from "fs";
 import { useInput } from "ink";
 import path from "path";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export const useConversation = () => {
   const { messages, addMessage } = useSession();
@@ -26,6 +26,21 @@ export const useConversation = () => {
 
   const [isLoadingAssistantMessage, setIsLoadingAssistantMessage] =
     useState(false);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const cancelAssistantMessage = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      cancelAssistantMessage();
+    };
+  }, []);
 
   const handleInputSubmit = async (content: string) => {
     const contextFilesPaths = getContextFilesPaths(content);
@@ -74,15 +89,21 @@ export const useConversation = () => {
     const messagesWithUserMessage = [...messages, userMessage];
 
     setIsLoadingAssistantMessage(true);
+    abortControllerRef.current = new AbortController();
     try {
       const assistantMessage = await providerService.getAssistantMessage(
         messagesWithUserMessage,
+        abortControllerRef.current.signal,
       );
       addMessage({ role: MessageRole.Assistant, content: assistantMessage });
-    } catch {
-      /* tslint:disable:no-empty */
+    } catch (error) {
+      // Only show error if it wasn't an abort
+      if (error instanceof Error && error.name !== "AbortError") {
+        /* tslint:disable:no-empty */
+      }
     } finally {
       setIsLoadingAssistantMessage(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -110,5 +131,6 @@ export const useConversation = () => {
     messages,
     handleInputSubmit,
     isLoadingAssistantMessage,
+    cancelAssistantMessage,
   };
 };

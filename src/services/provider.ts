@@ -5,7 +5,10 @@ import { MessageRole, type Message } from "../types/conversation.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export type ProviderService = {
-  getAssistantMessage: (messages: Message[]) => Promise<string>;
+  getAssistantMessage: (
+    messages: Message[],
+    signal?: AbortSignal,
+  ) => Promise<string>;
 };
 
 const toProviderMessages = (
@@ -45,13 +48,21 @@ export const loadProviderService = (config: Config): ProviderService => {
   const client = new Anthropic({ apiKey: config.apiKey });
 
   return {
-    getAssistantMessage: async (messages: Message[]): Promise<string> => {
-      const assistantMessage = await client.messages.create({
-        max_tokens: PROVIDER_MAX_TOKENS,
-        messages: toProviderMessages(messages),
-        system: SYSTEM_PROMPT,
-        model: PROVIDER_MODEL,
-      });
+    getAssistantMessage: async (
+      messages: Message[],
+      signal?: AbortSignal,
+    ): Promise<string> => {
+      const assistantMessage = await client.messages.create(
+        {
+          max_tokens: PROVIDER_MAX_TOKENS,
+          messages: toProviderMessages(messages),
+          system: SYSTEM_PROMPT,
+          model: PROVIDER_MODEL,
+        },
+        {
+          signal,
+        },
+      );
 
       const assistantMessageTextBlocks = assistantMessage.content.filter(
         (block): block is Anthropic.TextBlock => block.type === "text",

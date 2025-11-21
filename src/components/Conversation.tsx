@@ -16,12 +16,17 @@ export const Conversation = () => {
   const { exit } = useApp();
   const { notification } = useNotification();
 
-  const { messages, handleInputSubmit, isLoadingAssistantMessage } =
-    useConversation();
+  const {
+    messages,
+    handleInputSubmit,
+    isLoadingAssistantMessage,
+    cancelAssistantMessage,
+  } = useConversation();
 
   const [currentInput, setCurrentInput] = useState("");
   const [currentCursorPosition, setCurrentCursorPosition] = useState(0);
   const [questionsQuit, setQuestionsQuit] = useState(false);
+  const [escPressCount, setEscPressCount] = useState(0);
 
   const questions = extractGeneratedFollowUpQuestions(messages);
 
@@ -29,9 +34,22 @@ export const Conversation = () => {
     setQuestionsQuit(false);
   }, [messages.length]);
 
+  useEffect(() => {
+    setEscPressCount(0);
+  }, [isLoadingAssistantMessage]);
+
   useInput((_, key) => {
-    if (key.escape && (questions.length === 0 || questionsQuit)) {
-      exit();
+    if (key.escape) {
+      if (isLoadingAssistantMessage) {
+        if (escPressCount === 0) {
+          cancelAssistantMessage();
+          setEscPressCount(1);
+        } else {
+          exit();
+        }
+      } else if (questions.length === 0 || questionsQuit) {
+        exit();
+      }
     }
   });
 

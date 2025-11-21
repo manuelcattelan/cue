@@ -74,5 +74,13 @@ export const AssistantLoading = ({ type }: MessageLoadingProps) => {
     })
     .join("");
 
-  return <Text>{renderedLoadingText}</Text>;
+  return (
+    <Text>
+      {renderedLoadingText}
+      <Text color={semanticColors.mutedAccent}>
+        {" "}
+        (<Text bold>esc</Text>) to interrupt
+      </Text>
+    </Text>
+  );
 };
