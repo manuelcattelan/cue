@@ -1,3 +1,4 @@
+import { useNotification } from "../contexts/NotificationContext.js";
 import { useConversation } from "../hooks/useConversation.js";
 import { extractGeneratedFollowUpQuestions } from "../lib/parsing.js";
 import { MessageRole } from "../types/conversation.js";
@@ -13,6 +14,7 @@ import { useState, useEffect } from "react";
 
 export const Conversation = () => {
   const { exit } = useApp();
+  const { notification } = useNotification();
 
   const { messages, handleInputSubmit, isLoadingAssistantMessage } =
     useConversation();
@@ -73,13 +75,15 @@ export const Conversation = () => {
           onInputSubmit={handleInputSubmit}
         />
       )}
-      <KeyboardShortcuts
-        view={
-          showQuestions
-            ? KeyboardShortcutsView.Questions
-            : KeyboardShortcutsView.Input
-        }
-      />
+      {!notification && (
+        <KeyboardShortcuts
+          view={
+            showQuestions
+              ? KeyboardShortcutsView.Questions
+              : KeyboardShortcutsView.Input
+          }
+        />
+      )}
     </Box>
   );
 };
