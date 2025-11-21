@@ -1,6 +1,4 @@
-import { useNotification } from "../contexts/NotificationContext.js";
 import { useContextPicker } from "../hooks/useContextPicker.js";
-import { Notification } from "../ui/feedback/Notification.js";
 import { TextInput } from "../ui/input/TextInput.js";
 import { Separator } from "../ui/layout/Separator.js";
 import { ContextPicker } from "./ContextPicker.js";
@@ -19,8 +17,6 @@ export const ConversationInput = ({
   onInputChange,
   onInputSubmit,
 }: ConversationInputProps) => {
-  const { notification } = useNotification();
-
   const {
     isContextPickerOpen,
     contextPickerFiles,
@@ -122,16 +118,14 @@ export const ConversationInput = ({
         disableConflictingKeys={isContextPickerOpen}
       />
       <Separator />
-      {isContextPickerOpen ? (
+      {isContextPickerOpen && (
         <ContextPicker
           contextPickerFiles={contextPickerFiles}
           contextPickerQuery={contextPickerQuery}
           onSelectContextPickerFile={handleSelectContextPickerFile}
           onCancelContextPicker={toggleContextPickerOff}
         />
-      ) : notification ? (
-        <Notification notification={notification} />
-      ) : null}
+      )}
     </Box>
   );
 };

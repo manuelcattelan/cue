@@ -9,8 +9,6 @@ type KeyboardShortcut = {
 };
 
 const INPUT_SHORTCUTS: KeyboardShortcut[] = [
-  { shortcut: "arrows", description: "navigate" },
-  { shortcut: "enter", description: "new line" },
   { shortcut: "ctrl+d", description: "submit" },
   { shortcut: "ctrl+y", description: "copy prompt" },
   { shortcut: "esc", description: "quit" },
@@ -20,6 +18,7 @@ const QUESTIONS_SHORTCUTS: KeyboardShortcut[] = [
   { shortcut: "tab", description: "next" },
   { shortcut: "shift+tab", description: "previous" },
   { shortcut: "ctrl+d", description: "submit" },
+  { shortcut: "ctrl+y", description: "copy prompt" },
   { shortcut: "esc", description: "quit" },
 ];
 

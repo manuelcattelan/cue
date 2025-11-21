@@ -2,6 +2,7 @@ import { useNotification } from "../contexts/NotificationContext.js";
 import { useConversation } from "../hooks/useConversation.js";
 import { extractGeneratedFollowUpQuestions } from "../lib/parsing.js";
 import { MessageRole } from "../types/conversation.js";
+import { Notification } from "../ui/feedback/Notification.js";
 import { ConversationHistory } from "./ConversationHistory.js";
 import { ConversationInput } from "./ConversationInput.js";
 import { ConversationQuestions } from "./ConversationQuestions.js";
@@ -93,7 +94,9 @@ export const Conversation = () => {
           onInputSubmit={handleInputSubmit}
         />
       )}
-      {!notification && (
+      {notification ? (
+        <Notification notification={notification} />
+      ) : (
         <KeyboardShortcuts
           view={
             showQuestions
