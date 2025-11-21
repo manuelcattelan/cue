@@ -2,15 +2,17 @@ import dotenv from "dotenv";
 import * as z from "zod";
 
 export type Config = {
-  apiKey: string;
+  providerAPIKey: string;
 };
 
 const ConfigSchema: z.ZodType<Config> = z.object({
-  apiKey: z.string().min(1),
+  providerAPIKey: z.string().min(1),
 });
 
 export const loadConfig = (): Config => {
   dotenv.config({ quiet: true });
 
-  return ConfigSchema.parse({ apiKey: process.env.API_KEY });
+  return ConfigSchema.parse({
+    providerAPIKey: process.env.CUE_PROVIDER_API_KEY,
+  });
 };

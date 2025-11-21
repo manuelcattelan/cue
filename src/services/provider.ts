@@ -45,7 +45,7 @@ const toProviderMessages = (
 };
 
 export const loadProviderService = (config: Config): ProviderService => {
-  const client = new Anthropic({ apiKey: config.apiKey });
+  const client = new Anthropic({ apiKey: config.providerAPIKey });
 
   return {
     getAssistantMessage: async (
