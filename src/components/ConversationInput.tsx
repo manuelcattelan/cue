@@ -4,7 +4,6 @@ import { Notification } from "../ui/feedback/Notification.js";
 import { TextInput } from "../ui/input/TextInput.js";
 import { Separator } from "../ui/layout/Separator.js";
 import { ContextPicker } from "./ContextPicker.js";
-import { KeyboardShortcuts } from "./KeyboardShortcuts.js";
 import { Box } from "ink";
 
 type ConversationInputProps = {
@@ -117,6 +116,7 @@ export const ConversationInput = ({
       <TextInput
         controlledInput={currentInput}
         controlledCursorPosition={currentCursorPosition}
+        placeholder="Take your cue…"
         onInputChange={onInputChangeInternal}
         onInputSubmit={onInputSubmit}
         disableConflictingKeys={isContextPickerOpen}
@@ -131,9 +131,7 @@ export const ConversationInput = ({
         />
       ) : notification ? (
         <Notification notification={notification} />
-      ) : (
-        <KeyboardShortcuts />
-      )}
+      ) : null}
     </Box>
   );
 };

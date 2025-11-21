@@ -1,6 +1,7 @@
 import { semanticColors } from "../lib/colors.js";
 import type { Question } from "../types/conversation.js";
 import { TextInput } from "../ui/input/TextInput.js";
+import { Separator } from "../ui/layout/Separator.js";
 import { Box, Text, useInput } from "ink";
 import { useState, type FC } from "react";
 
@@ -109,12 +110,12 @@ export const ConversationQuestions: FC<ConversationQuestionsProps> = ({
     }
   });
 
-  const getQuestionCharacter = (
+  const getQuestionPromptCharacter = (
     questionId: string,
     questionIndex: number,
   ): string => {
     if (questionIndex === currentQuestionIndex) {
-      return "›";
+      return " ";
     } else if (answers.has(questionId)) {
       return "✓";
     } else {
@@ -123,33 +124,93 @@ export const ConversationQuestions: FC<ConversationQuestionsProps> = ({
   };
 
   return (
-    <Box flexDirection="column" gap={1}>
-      <Text color={semanticColors.mutedAccent}>
-        Question {currentQuestionIndex + 1} of {questions.length}
-      </Text>
-      <Box flexDirection="column">
-        {questions.map((question, questionIndex) => (
-          <Box key={question.id}>
-            <Text
-              color={
-                questionIndex === currentQuestionIndex
-                  ? semanticColors.mutedAccent
-                  : semanticColors.muted
-              }
-            >
-              {getQuestionCharacter(question.id, questionIndex)}{" "}
-              {question.content}
+    <Box flexDirection="column">
+      <Separator />
+      <Box flexDirection="column" paddingY={1}>
+        <Box flexDirection="column" gap={1} paddingX={1}>
+          <Box flexDirection="row" justifyContent="space-between">
+            <Text color={semanticColors.mutedAccent} bold>
+              Follow-up Questions
+            </Text>
+            <Text color={semanticColors.muted} dimColor>
+              {answers.size}/{questions.length} answered •{" "}
+              {currentQuestionIndex + 1}/{questions.length}
             </Text>
           </Box>
-        ))}
+        </Box>
+        <Box flexDirection="column" paddingTop={1} gap={1}>
+          {questions.map((question, questionIndex) => {
+            const isCurrentQuestion = questionIndex === currentQuestionIndex;
+            const isPreviousQuestion = questionIndex < currentQuestionIndex;
+
+            const questionIsAnswered = answers.has(question.id);
+            const questionIsPending = questionIndex > currentQuestionIndex;
+
+            if (isPreviousQuestion) {
+              return (
+                <Box key={question.id} paddingX={2}>
+                  <Text
+                    dimColor
+                    color={semanticColors.muted}
+                    wrap="truncate-end"
+                  >
+                    {getQuestionPromptCharacter(question.id, questionIndex)}{" "}
+                    {question.content}
+                    {questionIsAnswered &&
+                      ` → ${answers.get(question.id) || ""}`}
+                  </Text>
+                </Box>
+              );
+            }
+
+            if (isCurrentQuestion) {
+              return (
+                <Box
+                  key={question.id}
+                  flexDirection="column"
+                  borderStyle="single"
+                  borderColor={semanticColors.mutedAccent}
+                  paddingX={1}
+                  paddingY={0}
+                >
+                  <Box flexDirection="row">
+                    <Box width={2} flexShrink={0} />
+                    <Text color={semanticColors.mutedAccent} bold wrap="wrap">
+                      {question.content}
+                    </Text>
+                  </Box>
+                  <Box marginTop={1}>
+                    <TextInput
+                      controlledInput={currentAnswer}
+                      controlledCursorPosition={currentAnswer.length}
+                      placeholder="Type your answer here."
+                      onInputChange={handleInputChange}
+                    />
+                  </Box>
+                </Box>
+              );
+            }
+
+            if (questionIsPending) {
+              return (
+                <Box key={question.id} paddingX={2}>
+                  <Text
+                    dimColor
+                    color={semanticColors.muted}
+                    wrap="truncate-end"
+                  >
+                    {getQuestionPromptCharacter(question.id, questionIndex)}{" "}
+                    {question.content}
+                  </Text>
+                </Box>
+              );
+            }
+
+            return null;
+          })}
+        </Box>
       </Box>
-      <Box flexDirection="column" marginBottom={1}>
-        <TextInput
-          controlledInput={currentAnswer}
-          controlledCursorPosition={currentAnswer.length}
-          onInputChange={handleInputChange}
-        />
-      </Box>
+      <Separator />
     </Box>
   );
 };

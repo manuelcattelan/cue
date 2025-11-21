@@ -48,6 +48,7 @@ type TextInputProps = {
   controlledInput?: string;
   controlledCursorPosition?: number;
   disableConflictingKeys?: boolean;
+  placeholder?: string;
   onInputSubmit?: (content: string) => void;
   onInputChange?: (input: string, cursorPosition: number) => void;
 };
@@ -56,10 +57,11 @@ export const TextInput = ({
   controlledInput,
   controlledCursorPosition,
   disableConflictingKeys = false,
+  placeholder,
   onInputSubmit,
   onInputChange,
 }: TextInputProps) => {
-  const inputPlaceholder = "Take your cue…";
+  const inputPlaceholder = placeholder;
 
   const [internalInput, setInternalInput] = useState<string>("");
   const [internalCursorPosition, setInternalCursorPosition] =
@@ -84,7 +86,7 @@ export const TextInput = ({
 
   const renderedCurrentInput = useMemo(() => {
     if (currentInput.length === 0) {
-      return "";
+      return inputPlaceholder ? "" : chalk.inverse(" ");
     }
 
     const characters = [...currentInput].map((character, characterPosition) => {
@@ -101,7 +103,7 @@ export const TextInput = ({
     }
 
     return characters.join("");
-  }, [currentInput, currentCursorPosition]);
+  }, [currentInput, currentCursorPosition, inputPlaceholder]);
 
   const currentInputLinesWithBoundaries = useMemo(
     () => getLinesWithBoundaries(currentInput),

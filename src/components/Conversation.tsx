@@ -4,6 +4,10 @@ import { MessageRole } from "../types/conversation.js";
 import { ConversationHistory } from "./ConversationHistory.js";
 import { ConversationInput } from "./ConversationInput.js";
 import { ConversationQuestions } from "./ConversationQuestions.js";
+import {
+  KeyboardShortcuts,
+  KeyboardShortcutsView,
+} from "./KeyboardShortcuts.js";
 import { Box, useApp, useInput } from "ink";
 import { useState, useEffect } from "react";
 
@@ -43,15 +47,19 @@ export const Conversation = () => {
     setQuestionsQuit(true);
   };
 
+  const showQuestions =
+    !questionsQuit &&
+    questions.length > 0 &&
+    messages.length > 0 &&
+    messages[messages.length - 1]?.role === MessageRole.Assistant;
+
   return (
     <Box flexDirection="column" marginTop={1} marginBottom={1}>
       <ConversationHistory
         messages={messages}
         isLoadingAssistantMessage={isLoadingAssistantMessage}
       />
-      {questions.length > 0 &&
-      !questionsQuit &&
-      messages[messages.length]?.role === MessageRole.Assistant ? (
+      {showQuestions ? (
         <ConversationQuestions
           questions={questions}
           onQuestionsSubmit={handleQuestionsSubmit}
@@ -65,6 +73,13 @@ export const Conversation = () => {
           onInputSubmit={handleInputSubmit}
         />
       )}
+      <KeyboardShortcuts
+        view={
+          showQuestions
+            ? KeyboardShortcutsView.Questions
+            : KeyboardShortcutsView.Input
+        }
+      />
     </Box>
   );
 };
