@@ -79,7 +79,7 @@ export const AssistantLoading = ({ type }: MessageLoadingProps) => {
       {renderedLoadingText}
       <Text color={semanticColors.mutedAccent}>
         {" "}
-        (<Text bold>esc</Text>) to interrupt
+        (<Text bold>esc</Text> to interrupt)
       </Text>
     </Text>
   );

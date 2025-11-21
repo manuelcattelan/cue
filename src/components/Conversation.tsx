@@ -30,6 +30,12 @@ export const Conversation = () => {
 
   const questions = extractGeneratedFollowUpQuestions(messages);
 
+  const showQuestions =
+    !questionsQuit &&
+    questions.length > 0 &&
+    messages.length > 0 &&
+    messages[messages.length - 1]?.role === MessageRole.Assistant;
+
   useEffect(() => {
     setQuestionsQuit(false);
   }, [messages.length]);
@@ -47,7 +53,7 @@ export const Conversation = () => {
         } else {
           exit();
         }
-      } else if (questions.length === 0 || questionsQuit) {
+      } else if (!showQuestions) {
         exit();
       }
     }
@@ -66,12 +72,6 @@ export const Conversation = () => {
   const handleQuestionsQuit = () => {
     setQuestionsQuit(true);
   };
-
-  const showQuestions =
-    !questionsQuit &&
-    questions.length > 0 &&
-    messages.length > 0 &&
-    messages[messages.length - 1]?.role === MessageRole.Assistant;
 
   return (
     <Box flexDirection="column" marginTop={1} marginBottom={1}>
