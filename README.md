@@ -15,7 +15,7 @@ Generate LLM-ready, effective prompts directly from your CLI.
 
 - npm package manager
 - [Anthropic API key](https://console.anthropic.com/)
-  
+
 ## Installation
 
 `cue` is available both inside the [npm registry](https://www.npmjs.com/package/@manuelcattelan/cue) and the [GitHub registry](https://github.com/manuelcattelan/cue/pkgs/npm/cue). You can install it globally with:
