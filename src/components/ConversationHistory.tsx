@@ -10,11 +10,13 @@ import { Box, Text } from "ink";
 type MessageListProps = {
   messages: Message[];
   isLoadingAssistantMessage?: boolean;
+  streamMessage?: string;
 };
 
 export const ConversationHistory = ({
   messages,
   isLoadingAssistantMessage = false,
+  streamMessage = "",
 }: MessageListProps) => {
   if (messages.length === 0 && !isLoadingAssistantMessage) {
     return null;
@@ -49,7 +51,11 @@ export const ConversationHistory = ({
       })}
       {isLoadingAssistantMessage && (
         <Box marginBottom={messageListMargin}>
-          <AssistantLoading type="balloon" />
+          {streamMessage ? (
+            <Text>{streamMessage}</Text>
+          ) : (
+            <AssistantLoading type="balloon" />
+          )}
         </Box>
       )}
     </Box>

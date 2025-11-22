@@ -7,6 +7,7 @@ import Anthropic from "@anthropic-ai/sdk";
 export type ProviderService = {
   getAssistantMessage: (
     messages: Message[],
+    onStreamText: (streamText: string) => void,
     signal?: AbortSignal,
   ) => Promise<string>;
 };
@@ -20,20 +21,20 @@ const toProviderMessages = (
       message.contextFiles &&
       message.contextFiles.length > 0
     ) {
-      const messageContentBlocks: Anthropic.Messages.TextBlockParam[] = [];
+      const messageContentTextBlocks: Anthropic.Messages.TextBlockParam[] = [];
       for (const file of message.contextFiles) {
         if (file.content !== null) {
-          messageContentBlocks.push({
+          messageContentTextBlocks.push({
             type: "text",
             text: `<file path="${file.path}">\n${file.content}\n</file>`,
           });
         }
       }
-      messageContentBlocks.push({ type: "text", text: message.content });
+      messageContentTextBlocks.push({ type: "text", text: message.content });
 
       return {
         role: message.role,
-        content: messageContentBlocks,
+        content: messageContentTextBlocks,
       };
     }
 
@@ -50,25 +51,30 @@ export const loadProviderService = (config: Config): ProviderService => {
   return {
     getAssistantMessage: async (
       messages: Message[],
+      onStreamText: (streamText: string) => void,
       signal?: AbortSignal,
     ): Promise<string> => {
-      const assistantMessage = await client.messages.create(
-        {
-          max_tokens: PROVIDER_MAX_TOKENS,
-          messages: toProviderMessages(messages),
-          system: SYSTEM_PROMPT,
-          model: PROVIDER_MODEL,
-        },
-        {
-          signal,
-        },
-      );
+      const stream = client.messages
+        .stream(
+          {
+            max_tokens: PROVIDER_MAX_TOKENS,
+            messages: toProviderMessages(messages),
+            system: SYSTEM_PROMPT,
+            model: PROVIDER_MODEL,
+          },
+          { signal },
+        )
+        .on("text", onStreamText);
 
-      const assistantMessageTextBlocks = assistantMessage.content.filter(
+      const assistantMessage = await stream.finalMessage();
+
+      const assistantMessageContentTextBlocks = assistantMessage.content.filter(
         (block): block is Anthropic.TextBlock => block.type === "text",
       );
 
-      return assistantMessageTextBlocks.map((block) => block.text).join("");
+      return assistantMessageContentTextBlocks
+        .map((block) => block.text)
+        .join("");
     },
   };
 };

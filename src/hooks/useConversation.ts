@@ -26,6 +26,7 @@ export const useConversation = () => {
 
   const [isLoadingAssistantMessage, setIsLoadingAssistantMessage] =
     useState(false);
+  const [streamMessage, setStreamMessage] = useState("");
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -41,6 +42,10 @@ export const useConversation = () => {
       cancelAssistantMessage();
     };
   }, []);
+
+  const handleStreamText = (streamMessage: string) => {
+    setStreamMessage((prev) => prev + streamMessage);
+  };
 
   const handleInputSubmit = async (content: string) => {
     const contextFilesPaths = getContextFilesPaths(content);
@@ -89,10 +94,13 @@ export const useConversation = () => {
     const messagesWithUserMessage = [...messages, userMessage];
 
     setIsLoadingAssistantMessage(true);
+    setStreamMessage("");
+
     abortControllerRef.current = new AbortController();
     try {
       const assistantMessage = await providerService.getAssistantMessage(
         messagesWithUserMessage,
+        handleStreamText,
         abortControllerRef.current.signal,
       );
       addMessage({ role: MessageRole.Assistant, content: assistantMessage });
@@ -103,6 +111,7 @@ export const useConversation = () => {
       }
     } finally {
       setIsLoadingAssistantMessage(false);
+      setStreamMessage("");
       abortControllerRef.current = null;
     }
   };
@@ -131,6 +140,7 @@ export const useConversation = () => {
     messages,
     handleInputSubmit,
     isLoadingAssistantMessage,
+    streamMessage,
     cancelAssistantMessage,
   };
 };

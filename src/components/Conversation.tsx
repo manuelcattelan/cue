@@ -21,6 +21,7 @@ export const Conversation = () => {
     messages,
     handleInputSubmit,
     isLoadingAssistantMessage,
+    streamMessage,
     cancelAssistantMessage,
   } = useConversation();
 
@@ -79,6 +80,7 @@ export const Conversation = () => {
       <ConversationHistory
         messages={messages}
         isLoadingAssistantMessage={isLoadingAssistantMessage}
+        streamMessage={streamMessage}
       />
       {showQuestions ? (
         <ConversationQuestions
