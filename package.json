@@ -1,6 +1,6 @@
 {
   "name": "cue",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "MCP server designed to front-load prompt engineering for agentic workflows.",
   "type": "module",
   "keywords": [
@@ -41,7 +41,8 @@
   },
   "packageManager": "pnpm@10.23.0",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.23.0",
-    "zod": "^4.1.13"
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "zod": "^4.2.1"
   }
 }
