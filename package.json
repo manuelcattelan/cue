@@ -1,6 +1,6 @@
 {
   "name": "@manuelcattelan/cue",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "MCP server designed to front-load prompt engineering for agentic workflows.",
   "type": "module",
   "keywords": [
