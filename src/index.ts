@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const server = new McpServer({
   name: "cue",
-  version: "1.0.0",
+  version: "2.0.0",
 });
 
 // Maximum number of tokens that the model is allowed to generate in its response.
@@ -135,42 +135,98 @@ needed.
 </rules-list>
 
 <output-format>
-You MUST only output the improved prompt. Do not include any preamble,
-explanation or commentary before or after the prompt. This is crucial since the
-generated prompt will be used as-is, and any additional information may cause
-noise to the LLM client that will be reading it.
+Your response MUST always include two specific sections: the improved prompt
+under a "## Prompt" heading and, if you wish to ask any, follow-up questions
+under a "## Follow-up questions" heading.
+
+While iterating, you may include additional text before or after these sections
+(such as explanations or suggestions), but the prompt must always appear first
+and when you feel like the prompt is optimal, your answer should only include
+the improved prompt itself without any preamble, explanation or commentary
+before or after it.
 </output-format>
 
-NOTE: You are not completing the task yourself. You are writing instructions for
-another AI to complete it.
-NOTE: You MUST ALWAYS generate a prompt, even if the task description feels too
-vague or incomplete. When this happens or you're simply unsure about specific
-details, generate the best possible prompt based on the available information,
-then make it so that the generated prompt will instruct the target LLM to ask
-for clarifying questions when needed.`;
+<follow-up-questions>
+When you need clarification to improve the generated prompt, include
+follow-up questions AFTER the prompt section. These questions help you
+gather more context for refining the prompt in subsequent iterations.
 
-server.registerPrompt(
-  "improve_prompt",
-  { argsSchema: { prompt: z.string() } },
-  async ({ prompt }) => {
-    // Prompt that will be injected inside the LLM client's messages conversation
-    // without the end user needing to perform any specific action. When the MCP
-    // server has finished producing the generated prompt, this is simply send
-    // straight back to the LLM client which evaluates it and produces an answer.
-    let improvedPrompt: string;
+Rules for follow-up questions:
+1. Each question must be clear, concise, and focused on improving the prompt;
+2. Limit to 3-5 questions maximum to avoid overwhelming the end user;
+3. Questions must appear AFTER the prompt section;
+4. As the context becomes more complete across iterations, reduce the number
+of questions. When the prompt is comprehensive and no critical details are
+missing, you may omit the questions section entirely.
+</follow-up-questions>
+
+NOTE: it might be obvious to you at this point, but you are not actually
+completing the task here. You are writing instructions for another AI to
+complete it.
+NOTE: this is an iterative process and it might take multiple exchanges
+before the end user provides you with the full picture of what task has to
+be implemented.
+NOTE: you MUST ALWAYS generate a prompt, even if the task description is
+high-level or incomplete. When the task seems broad or you're unsure about
+specific aspects, generate the best possible prompt based on the available
+information, then follow it with clarifying questions that would help you
+refine the prompt in subsequent iterations. Your response should always
+include the generated prompt first, then any questions for additional context.`;
+
+server.registerTool(
+  "draft_prompt",
+  {
+    description:
+      "Generate and iteratively refine a prompt by applying prompt " +
+      "engineering best practices. " +
+      "To be invoked whenever the user wants to craft, improve or optimize " +
+      "the prompt for executing a task. " +
+      "Returns an improved version of the provided prompt and may include " +
+      "follow-up questions for further refinement.",
+    inputSchema: z.object({
+      task: z
+        .string()
+        .describe(
+          "What the end user wants to accomplish: their goal or objective. " +
+            "It could be a rough idea or a detailed description.",
+        ),
+      context: z
+        .string()
+        .describe(
+          "Any additional information that would help produce a more " +
+            "effective and accurate prompt, including but not limited to " +
+            "codebase files and their content, user-provided details other " +
+            "than the task description itself, MCP resources.",
+        ),
+      answers: z
+        .string()
+        .optional()
+        .describe(
+          "User-provided answers to follow-up questions from the previous " +
+            "tool iteration. It should be omitted on first invocation since " +
+            "tool hasn't generated any questions at that point.",
+        ),
+    }),
+  },
+  async ({ task, context, answers }) => {
+    const input = [task, context, answers].filter(Boolean).join("\n\n");
+
+    // This is the output of the LLM (either via sampling or fallback) which
+    // includes the generated prompt (not necessarily the final one) and
+    // potentially follow-up questions to allow the prompt to be refined further.
+    let result: string;
 
     const clientCapabilities = server.server.getClientCapabilities();
     const clientSupportsSampling = !!clientCapabilities?.sampling;
 
     if (clientSupportsSampling) {
       const response = await server.server.createMessage({
-        messages: [{ role: "user", content: { type: "text", text: prompt } }],
+        messages: [{ role: "user", content: { type: "text", text: input } }],
         systemPrompt: SYSTEM_PROMPT,
         maxTokens: MAX_TOKENS,
       });
 
-      improvedPrompt =
-        response.content.type === "text" ? response.content.text : "";
+      result = response.content.type === "text" ? response.content.text : "";
     } else {
       if (!process.env.ANTHROPIC_API_KEY) {
         throw new Error(
@@ -184,7 +240,7 @@ server.registerPrompt(
 
       const response = await anthropic.messages.create({
         max_tokens: MAX_TOKENS,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: input }],
         model: MODEL,
         system: SYSTEM_PROMPT,
       });
@@ -193,14 +249,12 @@ server.registerPrompt(
         (block) => block.type === "text",
       );
 
-      improvedPrompt =
+      result =
         responseTextBlocks?.type === "text" ? responseTextBlocks.text : "";
     }
 
     return {
-      messages: [
-        { role: "user", content: { type: "text", text: improvedPrompt } },
-      ],
+      content: [{ type: "text", text: result }],
     };
   },
 );
